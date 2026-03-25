@@ -6,7 +6,6 @@
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"/>
   <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
   <meta name="apple-mobile-web-app-title" content="popnoods"/>
   <link rel="manifest" href="/manifest.json"/>
   <title>popnoods — Space</title>
@@ -18,31 +17,20 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f9f9f7; color: #1a1a1a; min-height: 100vh; }
     input, textarea, button, select { font-family: inherit; }
-    :root {
-      --bg: #ffffff; --bg2: #f1f0e8; --border: rgba(0,0,0,0.12);
-      --border2: rgba(0,0,0,0.22); --text: #1a1a1a; --text2: #6b6b68;
-      --radius: 8px; --radius-lg: 12px; --nav-h: 48px; --bottom-nav-h: 60px;
-    }
-    @media (prefers-color-scheme: dark) {
-      body { background: #1a1a1a; color: #f0f0ee; }
-      :root { --bg: #252523; --bg2: #2e2e2b; --border: rgba(255,255,255,0.12); --border2: rgba(255,255,255,0.22); --text: #f0f0ee; --text2: #9a9a96; }
-    }
-    #topnav { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 0.5px solid var(--border); padding: 0 1.25rem; display: flex; align-items: center; justify-content: space-between; height: var(--nav-h); }
-    #topnav .brand { font-size: 14px; font-weight: 500; color: var(--text); text-decoration: none; }
-    #topnav .navlinks { display: flex; gap: 4px; }
-    #topnav .navlinks a { font-size: 13px; color: var(--text2); text-decoration: none; padding: 5px 10px; border-radius: var(--radius); }
-    #topnav .navlinks a:hover { background: var(--bg2); color: var(--text); }
-    #topnav .navlinks a.active { color: var(--text); font-weight: 500; }
-    #bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: var(--bg); border-top: 0.5px solid var(--border); height: var(--bottom-nav-h); }
-    #bottom-nav a { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-decoration: none; color: var(--text2); font-size: 10px; gap: 3px; padding: 8px 0; -webkit-tap-highlight-color: transparent; }
-    #bottom-nav a.active { color: var(--text); }
-    #bottom-nav a svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-    #bottom-nav a.active svg { stroke-width: 2; }
-    @media (max-width: 640px) {
-      #topnav { display: none; }
-      #bottom-nav { display: flex; }
-      body { padding-bottom: var(--bottom-nav-h); }
-    }
+    :root { --bg:#ffffff; --bg2:#f1f0e8; --border:rgba(0,0,0,0.12); --border2:rgba(0,0,0,0.22); --text:#1a1a1a; --text2:#6b6b68; --radius:8px; --radius-lg:12px; }
+    @media (prefers-color-scheme: dark) { body { background:#1a1a1a; color:#f0f0ee; } :root { --bg:#252523; --bg2:#2e2e2b; --border:rgba(255,255,255,0.12); --border2:rgba(255,255,255,0.22); --text:#f0f0ee; --text2:#9a9a96; } }
+    #topnav { position:sticky; top:0; z-index:100; background:var(--bg); border-bottom:0.5px solid var(--border); padding:0 1.25rem; display:flex; align-items:center; justify-content:space-between; height:48px; }
+    #topnav .brand { font-size:14px; font-weight:500; color:var(--text); text-decoration:none; }
+    #topnav .navlinks { display:flex; gap:4px; }
+    #topnav .navlinks a { font-size:13px; color:var(--text2); text-decoration:none; padding:5px 10px; border-radius:var(--radius); }
+    #topnav .navlinks a:hover { background:var(--bg2); color:var(--text); }
+    #topnav .navlinks a.active { color:var(--text); font-weight:500; }
+    #bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:100; background:var(--bg); border-top:0.5px solid var(--border); height:60px; }
+    #bottom-nav a { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; text-decoration:none; color:var(--text2); font-size:10px; gap:3px; padding:8px 0; -webkit-tap-highlight-color:transparent; }
+    #bottom-nav a.active { color:var(--text); }
+    #bottom-nav a svg { width:22px; height:22px; stroke:currentColor; fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+    #bottom-nav a.active svg { stroke-width:2; }
+    @media (max-width:640px) { #topnav { display:none; } #bottom-nav { display:flex; } body { padding-bottom:60px; } }
   </style>
 </head>
 <body>
@@ -57,22 +45,10 @@
     </div>
   </nav>
   <nav id="bottom-nav">
-    <a href="/" class="active">
-      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Space
-    </a>
-    <a href="/habits.html">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      Habits
-    </a>
-    <a href="/tasks.html">
-      <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-      Tasks
-    </a>
-    <a href="/notes.html">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      Notes
-    </a>
+    <a href="/" class="active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Space</a>
+    <a href="/habits.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Habits</a>
+    <a href="/tasks.html"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Tasks</a>
+    <a href="/notes.html"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Notes</a>
   </nav>
   <div id="root"></div>
   <script type="text/babel">
@@ -90,35 +66,35 @@
     ];
 
     function getTodayStr() { return new Date().toISOString().slice(0,10); }
-    function getWeekStart() { const d = new Date(); d.setDate(d.getDate() - d.getDay()); return d.toISOString().slice(0,10); }
-    function getMonthStart() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-01`; }
+    function getWeekStart() { const d=new Date(); d.setDate(d.getDate()-d.getDay()); return d.toISOString().slice(0,10); }
+    function getMonthStart() { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-01"; }
+    function getDaysInMonth() { const d=new Date(); return new Date(d.getFullYear(),d.getMonth()+1,0).getDate(); }
 
     function useNow() {
-      const [now, setNow] = useState(new Date());
-      useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
+      const [now,setNow]=useState(new Date());
+      useEffect(()=>{ const t=setInterval(()=>setNow(new Date()),1000); return()=>clearInterval(t); },[]);
       return now;
     }
 
     function urgencyColor(task) {
-      if (task.done) return task.color;
-      if (!task.due_date) return task.color;
-      const today = getTodayStr();
-      if (task.due_date < today) return "#E24B4A";
-      if (task.due_date === today) return "#BA7517";
+      if(task.done) return task.color;
+      if(!task.due_date) return task.color;
+      const today=getTodayStr();
+      if(task.due_date<today) return "#E24B4A";
+      if(task.due_date===today) return "#BA7517";
       return task.color;
     }
 
     function formatDueDate(str) {
-      if (!str) return null;
-      const today = getTodayStr();
-      if (str === today) return "Due today";
-      if (str < today) return "Overdue";
-      return "Due " + new Date(str+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});
+      if(!str) return null;
+      const today=getTodayStr();
+      if(str===today) return "Due today";
+      if(str<today) return "Overdue";
+      return "Due "+new Date(str+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});
     }
 
     function Auth() {
-      const [email,setEmail]=useState(""); const [pw,setPw]=useState("");
-      const [mode,setMode]=useState("login"); const [msg,setMsg]=useState(""); const [loading,setLoading]=useState(false);
+      const [email,setEmail]=useState(""); const [pw,setPw]=useState(""); const [mode,setMode]=useState("login"); const [msg,setMsg]=useState(""); const [loading,setLoading]=useState(false);
       async function submit() {
         setLoading(true); setMsg("");
         if(mode==="login"){const{error}=await sb.auth.signInWithPassword({email,password:pw});if(error)setMsg(error.message);}
@@ -145,72 +121,48 @@
       );
     }
 
-    // — Reflect Card —
-    function ReflectCard({habits, habitLogs, tasks, notes}) {
-      const [tab, setTab] = useState("day");
-      const [open, setOpen] = useState(true);
-      const today = getTodayStr();
-      const weekStart = getWeekStart();
-      const monthStart = getMonthStart();
+    function Bar({pct, color}) {
+      return (
+        <div style={{height:6,borderRadius:3,background:"var(--bg2)",overflow:"hidden",marginTop:4}}>
+          <div style={{width:Math.min(100,pct)+"%",height:"100%",background:color||"#1D9E75",borderRadius:3,transition:"width 0.4s"}}/>
+        </div>
+      );
+    }
 
-      function inRange(date, from) { return date >= from && date <= today; }
+    function ReflectCard({habits, habitLogs, allTasks, allNotes}) {
+      const [tab,setTab]=useState("day");
+      const [open,setOpen]=useState(true);
+      const today=getTodayStr();
+      const weekStart=getWeekStart();
+      const monthStart=getMonthStart();
+      const DAYS_IN_WEEK=7;
+      const DAYS_IN_MONTH=getDaysInMonth();
+      function inRange(date,from){ return date>=from&&date<=today; }
+      const allLogs=Object.values(habitLogs).flat();
 
-      const dayHabits = habits.map(h => ({
-        ...h,
-        done: (habitLogs[h.id]||[]).some(l => l.date === today),
-        mins: (habitLogs[h.id]||[]).filter(l=>l.date===today).reduce((s,l)=>s+l.minutes,0),
-      }));
+      const dayHabits=habits.map(h=>({...h,done:(habitLogs[h.id]||[]).some(l=>l.date===today),mins:(habitLogs[h.id]||[]).filter(l=>l.date===today).reduce((s,l)=>s+l.minutes,0)}));
+      const weekHabits=habits.map(h=>{const wl=(habitLogs[h.id]||[]).filter(l=>inRange(l.date,weekStart));return{...h,count:new Set(wl.map(l=>l.date)).size};});
+      const monthHabits=habits.map(h=>{const ml=(habitLogs[h.id]||[]).filter(l=>inRange(l.date,monthStart));return{...h,count:new Set(ml.map(l=>l.date)).size,mins:ml.reduce((s,l)=>s+l.minutes,0)};});
 
-      const weekHabits = habits.map(h => {
-        const days = new Set((habitLogs[h.id]||[]).filter(l=>inRange(l.date,weekStart)).map(l=>l.date));
-        return { ...h, count: days.size };
-      });
+      const tasksDoneToday=allTasks.filter(t=>t.done&&(t.updated_at?.slice(0,10)===today||t.created_at?.slice(0,10)===today)).length;
+      const tasksPending=allTasks.filter(t=>!t.done).length;
+      const tasksCreatedWeek=allTasks.filter(t=>inRange(t.created_at?.slice(0,10),weekStart)).length;
+      const tasksDoneWeek=allTasks.filter(t=>t.done&&inRange((t.updated_at||t.created_at)?.slice(0,10),weekStart)).length;
+      const tasksCreatedMonth=allTasks.filter(t=>inRange(t.created_at?.slice(0,10),monthStart)).length;
+      const tasksDoneMonth=allTasks.filter(t=>t.done&&inRange((t.updated_at||t.created_at)?.slice(0,10),monthStart)).length;
+      const notesToday=allNotes.filter(n=>n.created_at?.slice(0,10)===today).length;
+      const notesWeek=allNotes.filter(n=>inRange(n.created_at?.slice(0,10),weekStart)).length;
+      const notesMonth=allNotes.filter(n=>inRange(n.created_at?.slice(0,10),monthStart)).length;
+      const weekLogs=allLogs.filter(l=>inRange(l.date,weekStart));
 
-      const monthHabits = habits.map(h => {
-        const days = new Set((habitLogs[h.id]||[]).filter(l=>inRange(l.date,monthStart)).map(l=>l.date));
-        const mins = (habitLogs[h.id]||[]).filter(l=>inRange(l.date,monthStart)).reduce((s,l)=>s+l.minutes,0);
-        return { ...h, count: days.size, mins };
-      });
-
-      const allLogs = Object.values(habitLogs).flat();
-      const weekLogs = allLogs.filter(l=>inRange(l.date,weekStart));
-      const monthLogs = allLogs.filter(l=>inRange(l.date,monthStart));
-
-      const tasksDoneToday = tasks.filter(t=>t.done&&t.updated_at&&t.updated_at.slice(0,10)===today).length;
-      const tasksPendingNow = tasks.filter(t=>!t.done).length;
-      const tasksCreatedWeek = tasks.filter(t=>inRange(t.created_at?.slice(0,10),weekStart)).length;
-      const tasksDoneWeek = tasks.filter(t=>t.done&&t.updated_at&&inRange(t.updated_at.slice(0,10),weekStart)).length;
-      const tasksCreatedMonth = tasks.filter(t=>inRange(t.created_at?.slice(0,10),monthStart)).length;
-      const tasksDoneMonth = tasks.filter(t=>t.done&&t.updated_at&&inRange(t.updated_at.slice(0,10),monthStart)).length;
-
-      const notesToday = notes.filter(n=>n.created_at?.slice(0,10)===today).length;
-      const notesWeek = notes.filter(n=>inRange(n.created_at?.slice(0,10),weekStart)).length;
-      const notesMonth = notes.filter(n=>inRange(n.created_at?.slice(0,10),monthStart)).length;
-      const pinnedCount = notes.filter(n=>n.pinned).length;
-
-      // week day count (Mon–Sun)
-      const daysInWeekSoFar = 7;
-      const daysInMonthSoFar = daysInMonth;
-      const daysInMonthSoFar = new Date().getDate();
-
-      const s = {
-        card: {background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"1rem 1.25rem",marginBottom:"0.75rem"},
-        label: {fontSize:12,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em"},
-        tab: (a)=>({fontSize:12,padding:"4px 10px",borderRadius:999,border:`0.5px solid ${a?"var(--border2)":"var(--border)"}`,background:a?"var(--bg2)":"transparent",color:a?"var(--text)":"var(--text2)",cursor:"pointer",fontWeight:a?500:400}),
-        stat: {background:"var(--bg2)",borderRadius:"var(--radius)",padding:"10px 12px",flex:1},
-        bar: (pct,color)=>({height:6,borderRadius:3,background:"var(--bg2)",overflow:"hidden",marginTop:4,children:[{width:`${Math.min(100,pct)}%`,height:"100%",background:color||"#1D9E75",borderRadius:3}]}),
+      const s={
+        label:{fontSize:12,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em"},
+        tab:(a)=>({fontSize:12,padding:"4px 10px",borderRadius:999,border:`0.5px solid ${a?"var(--border2)":"var(--border)"}`,background:a?"var(--bg2)":"transparent",color:a?"var(--text)":"var(--text2)",cursor:"pointer",fontWeight:a?500:400}),
+        stat:{background:"var(--bg2)",borderRadius:"var(--radius)",padding:"10px 12px",flex:1,minWidth:70},
       };
 
-      function Bar({pct, color}) {
-        return (
-          <div style={{height:6,borderRadius:3,background:"var(--bg2)",overflow:"hidden",marginTop:4}}>
-            <div style={{width:`${Math.min(100,pct)}%`,height:"100%",background:color||"#1D9E75",borderRadius:3,transition:"width 0.4s"}}/>
-          </div>
-        );
-      }
-
       return (
-        <div style={s.card}>
+        <div style={{background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"1rem 1.25rem",marginBottom:"0.75rem"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:open?12:0}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
               <span style={s.label}>Reflect</span>
@@ -224,68 +176,56 @@
             </div>
           </div>
 
-          {open && tab==="day" && (
+          {open&&tab==="day"&&(
             <div>
               <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
                 <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Habits done</div><div style={{fontSize:20,fontWeight:500}}>{dayHabits.filter(h=>h.done).length}/{habits.length}</div></div>
                 <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Tasks done</div><div style={{fontSize:20,fontWeight:500}}>{tasksDoneToday}</div></div>
                 <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Notes</div><div style={{fontSize:20,fontWeight:500}}>{notesToday}</div></div>
-                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Pending</div><div style={{fontSize:20,fontWeight:500}}>{tasksPendingNow}</div></div>
+                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Pending</div><div style={{fontSize:20,fontWeight:500}}>{tasksPending}</div></div>
               </div>
               {dayHabits.map(h=>(
-                <div key={h.id} style={{marginBottom:8}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:6}}>
-                      <div style={{width:8,height:8,borderRadius:"50%",background:h.color}}/>
-                      <span style={{fontSize:13}}>{h.name}</span>
-                    </div>
-                    <span style={{fontSize:12,color:h.done?"#1D9E75":"var(--text2)",fontWeight:h.done?500:400}}>{h.done?`✓ ${h.mins}min`:"—"}</span>
-                  </div>
+                <div key={h.id} style={{marginBottom:6,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:8,height:8,borderRadius:"50%",background:h.color}}/><span style={{fontSize:13}}>{h.name}</span></div>
+                  <span style={{fontSize:12,color:h.done?"#1D9E75":"var(--text2)",fontWeight:h.done?500:400}}>{h.done?"✓ "+h.mins+"min":"—"}</span>
                 </div>
               ))}
             </div>
           )}
 
-          {open && tab==="week" && (
+          {open&&tab==="week"&&(
             <div>
               <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
-                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Study sessions</div><div style={{fontSize:20,fontWeight:500}}>{weekLogs.length}</div></div>
-                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Tasks in/out</div><div style={{fontSize:20,fontWeight:500}}>{tasksCreatedWeek}/{tasksDoneWeek}</div></div>
+                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Sessions</div><div style={{fontSize:20,fontWeight:500}}>{weekLogs.length}</div></div>
+                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Tasks in/done</div><div style={{fontSize:20,fontWeight:500}}>{tasksCreatedWeek}/{tasksDoneWeek}</div></div>
                 <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Notes</div><div style={{fontSize:20,fontWeight:500}}>{notesWeek}</div></div>
               </div>
               {weekHabits.map(h=>(
                 <div key={h.id} style={{marginBottom:10}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
-                    <div style={{display:"flex",alignItems:"center",gap:6}}>
-                      <div style={{width:8,height:8,borderRadius:"50%",background:h.color}}/>
-                      <span style={{fontSize:13}}>{h.name}</span>
-                    </div>
-                    <span style={{fontSize:12,color:"var(--text2)"}}>{h.count}/{daysInWeekSoFar} days</span>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:8,height:8,borderRadius:"50%",background:h.color}}/><span style={{fontSize:13}}>{h.name}</span></div>
+                    <span style={{fontSize:12,color:"var(--text2)"}}>{h.count}/{DAYS_IN_WEEK} days</span>
                   </div>
-                  <Bar pct={(h.count/daysInWeekSoFar)*100} color={h.color}/>
+                  <Bar pct={(h.count/DAYS_IN_WEEK)*100} color={h.color}/>
                 </div>
               ))}
             </div>
           )}
 
-          {open && tab==="month" && (
+          {open&&tab==="month"&&(
             <div>
               <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
-                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Study mins</div><div style={{fontSize:20,fontWeight:500}}>{monthLogs.reduce((s,l)=>s+l.minutes,0)}</div></div>
-                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Tasks in/out</div><div style={{fontSize:20,fontWeight:500}}>{tasksCreatedMonth}/{tasksDoneMonth}</div></div>
+                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Study mins</div><div style={{fontSize:20,fontWeight:500}}>{allLogs.filter(l=>inRange(l.date,monthStart)).reduce((s,l)=>s+l.minutes,0)}</div></div>
+                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Tasks in/done</div><div style={{fontSize:20,fontWeight:500}}>{tasksCreatedMonth}/{tasksDoneMonth}</div></div>
                 <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Notes</div><div style={{fontSize:20,fontWeight:500}}>{notesMonth}</div></div>
-                {pinnedCount>0&&<div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Pinned</div><div style={{fontSize:20,fontWeight:500}}>{pinnedCount}</div></div>}
               </div>
               {monthHabits.map(h=>(
                 <div key={h.id} style={{marginBottom:10}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
-                    <div style={{display:"flex",alignItems:"center",gap:6}}>
-                      <div style={{width:8,height:8,borderRadius:"50%",background:h.color}}/>
-                      <span style={{fontSize:13}}>{h.name}</span>
-                    </div>
-                    <span style={{fontSize:12,color:"var(--text2)"}}>{h.count}/{daysInMonthSoFar} days · {h.mins}min</span>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:8,height:8,borderRadius:"50%",background:h.color}}/><span style={{fontSize:13}}>{h.name}</span></div>
+                    <span style={{fontSize:12,color:"var(--text2)"}}>{h.count}/{DAYS_IN_MONTH} days · {h.mins}min</span>
                   </div>
-                  <Bar pct={(h.count/daysInMonthSoFar)*100} color={h.color}/>
+                  <Bar pct={(h.count/DAYS_IN_MONTH)*100} color={h.color}/>
                 </div>
               ))}
             </div>
@@ -294,27 +234,22 @@
       );
     }
 
-    // — Search —
-    function SearchBar({habits, habitLogs, tasks, notes, onClose}) {
-      const [q, setQ] = useState("");
-      const ref = useRef();
+    function SearchBar({habits, habitLogs, allTasks, allNotes, onClose}) {
+      const [q,setQ]=useState("");
+      const ref=useRef();
       useEffect(()=>{ ref.current?.focus(); },[]);
-
-      const query = q.trim().toLowerCase();
-      if (!query) return (
+      const query=q.trim().toLowerCase();
+      if(!query) return (
         <div style={{padding:"1rem",background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",marginBottom:"0.75rem"}}>
           <input ref={ref} type="text" placeholder="Search notes, tasks, habits..." value={q} onChange={e=>setQ(e.target.value)} style={{width:"100%",fontSize:14,padding:"8px 10px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg2)",color:"var(--text)",outline:"none"}}/>
           <p style={{fontSize:12,color:"var(--text2)",marginTop:8,textAlign:"center"}}>Type to search across everything</p>
         </div>
       );
-
-      const matchedNotes = notes.filter(n=>n.content?.toLowerCase().includes(query)||(n.tags||[]).some(t=>t.toLowerCase().includes(query)));
-      const matchedTasks = tasks.filter(t=>t.title?.toLowerCase().includes(query));
-      const allLogs = Object.values(habitLogs).flat();
-      const matchedLogs = allLogs.filter(l=>l.notes?.toLowerCase().includes(query));
-
-      const total = matchedNotes.length + matchedTasks.length + matchedLogs.length;
-
+      const matchedNotes=allNotes.filter(n=>n.content?.toLowerCase().includes(query)||(n.tags||[]).some(t=>t.toLowerCase().includes(query)));
+      const matchedTasks=allTasks.filter(t=>t.title?.toLowerCase().includes(query));
+      const allLogs=Object.values(habitLogs).flat();
+      const matchedLogs=allLogs.filter(l=>l.notes?.toLowerCase().includes(query));
+      const total=matchedNotes.length+matchedTasks.length+matchedLogs.length;
       return (
         <div style={{background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"1rem",marginBottom:"0.75rem"}}>
           <div style={{display:"flex",gap:8,marginBottom:12}}>
@@ -322,39 +257,9 @@
             <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text2)",fontSize:18,padding:"0 4px"}}>×</button>
           </div>
           {total===0&&<p style={{fontSize:13,color:"var(--text2)"}}>No results for "{q}"</p>}
-          {matchedNotes.length>0&&(
-            <div style={{marginBottom:12}}>
-              <p style={{fontSize:11,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>Notes ({matchedNotes.length})</p>
-              {matchedNotes.slice(0,3).map(n=>(
-                <a key={n.id} href="/notes.html" style={{display:"block",padding:"6px 0",borderBottom:"0.5px solid var(--border)",textDecoration:"none"}}>
-                  <p style={{fontSize:13,color:"var(--text)",lineHeight:1.5}}>{n.content.slice(0,80)}{n.content.length>80?"...":""}</p>
-                  <div style={{display:"flex",gap:4,marginTop:3}}>{(n.tags||[]).map(t=><span key={t} style={{fontSize:10,padding:"1px 6px",borderRadius:999,background:"var(--bg2)",color:"var(--text2)"}}>{t}</span>)}</div>
-                </a>
-              ))}
-            </div>
-          )}
-          {matchedTasks.length>0&&(
-            <div style={{marginBottom:12}}>
-              <p style={{fontSize:11,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>Tasks ({matchedTasks.length})</p>
-              {matchedTasks.slice(0,3).map(t=>(
-                <a key={t.id} href="/tasks.html" style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderBottom:"0.5px solid var(--border)",textDecoration:"none"}}>
-                  <div style={{width:8,height:8,borderRadius:"50%",background:t.color,flexShrink:0}}/>
-                  <span style={{fontSize:13,color:"var(--text)",textDecoration:t.done?"line-through":"none"}}>{t.title}</span>
-                </a>
-              ))}
-            </div>
-          )}
-          {matchedLogs.length>0&&(
-            <div>
-              <p style={{fontSize:11,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>Session notes ({matchedLogs.length})</p>
-              {matchedLogs.slice(0,3).map((l,i)=>(
-                <a key={i} href="/habits.html" style={{display:"block",padding:"6px 0",borderBottom:"0.5px solid var(--border)",textDecoration:"none"}}>
-                  <p style={{fontSize:13,color:"var(--text)"}}>{l.notes}</p>
-                  <p style={{fontSize:11,color:"var(--text2)",marginTop:2}}>{l.date} · {l.minutes}min</p>
-                </a>
-              ))}
-            </div>
-          )}
+          {matchedNotes.length>0&&(<div style={{marginBottom:12}}><p style={{fontSize:11,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>Notes ({matchedNotes.length})</p>{matchedNotes.slice(0,3).map(n=>(<a key={n.id} href="/notes.html" style={{display:"block",padding:"6px 0",borderBottom:"0.5px solid var(--border)",textDecoration:"none"}}><p style={{fontSize:13,color:"var(--text)",lineHeight:1.5}}>{n.content.slice(0,80)}{n.content.length>80?"...":""}</p><div style={{display:"flex",gap:4,marginTop:3}}>{(n.tags||[]).map(t=><span key={t} style={{fontSize:10,padding:"1px 6px",borderRadius:999,background:"var(--bg2)",color:"var(--text2)"}}>{t}</span>)}</div></a>))}</div>)}
+          {matchedTasks.length>0&&(<div style={{marginBottom:12}}><p style={{fontSize:11,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>Tasks ({matchedTasks.length})</p>{matchedTasks.slice(0,3).map(t=>(<a key={t.id} href="/tasks.html" style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderBottom:"0.5px solid var(--border)",textDecoration:"none"}}><div style={{width:8,height:8,borderRadius:"50%",background:t.color,flexShrink:0}}/><span style={{fontSize:13,color:"var(--text)",textDecoration:t.done?"line-through":"none"}}>{t.title}</span></a>))}</div>)}
+          {matchedLogs.length>0&&(<div><p style={{fontSize:11,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>Session notes ({matchedLogs.length})</p>{matchedLogs.slice(0,3).map((l,i)=>(<a key={i} href="/habits.html" style={{display:"block",padding:"6px 0",borderBottom:"0.5px solid var(--border)",textDecoration:"none"}}><p style={{fontSize:13,color:"var(--text)"}}>{l.notes}</p><p style={{fontSize:11,color:"var(--text2)",marginTop:2}}>{l.date} · {l.minutes}min</p></a>))}</div>)}
         </div>
       );
     }
@@ -363,8 +268,8 @@
       const [session,setSession]=useState(null);
       const [habits,setHabits]=useState([]);
       const [habitLogs,setHabitLogs]=useState({});
-      const [tasks,setTasks]=useState([]);
       const [allTasks,setAllTasks]=useState([]);
+      const [pendingTasks,setPendingTasks]=useState([]);
       const [pinnedNotes,setPinnedNotes]=useState([]);
       const [recentNotes,setRecentNotes]=useState([]);
       const [allNotes,setAllNotes]=useState([]);
@@ -381,14 +286,14 @@
       const [showSearch,setShowSearch]=useState(false);
 
       useEffect(()=>{
-        sb.auth.getSession().then(({data:{session}})=>{setSession(session);if(session)loadData(session.user.id);else setLoading(false);});
-        const{data:{subscription}}=sb.auth.onAuthStateChange((_,session)=>{setSession(session);if(session)loadData(session.user.id);else setLoading(false);});
+        sb.auth.getSession().then(({data:{session}})=>{ setSession(session); if(session) loadData(session.user.id); else setLoading(false); });
+        const{data:{subscription}}=sb.auth.onAuthStateChange((_,session)=>{ setSession(session); if(session) loadData(session.user.id); else setLoading(false); });
         return()=>subscription.unsubscribe();
       },[]);
 
       async function loadData(uid) {
         setLoading(true);
-        const[{data:hData},{data:lData},{data:tData},{data:nData}]=await Promise.all([
+        const [{data:hData},{data:lData},{data:tData},{data:nData}] = await Promise.all([
           sb.from("habits").select("*").eq("user_id",uid),
           sb.from("habit_logs").select("*").eq("user_id",uid),
           sb.from("tasks").select("*").eq("user_id",uid).order("created_at",{ascending:false}),
@@ -396,12 +301,12 @@
         ]);
         const habitsArr=hData||[];
         const logsMap={};
-        habitsArr.forEach(h=>{logsMap[h.id]=(lData||[]).filter(l=>l.habit_id===h.id);});
+        habitsArr.forEach(h=>{ logsMap[h.id]=(lData||[]).filter(l=>l.habit_id===h.id); });
         setHabits(habitsArr);
         setHabitLogs(logsMap);
         const t=tData||[];
         setAllTasks(t);
-        setTasks(t.filter(x=>!x.done).sort((a,b)=>(a.due_date||"9999")>(b.due_date||"9999")?1:-1));
+        setPendingTasks(t.filter(x=>!x.done).sort((a,b)=>(a.due_date||"9999")>(b.due_date||"9999")?1:-1));
         const n=nData||[];
         setAllNotes(n);
         setPinnedNotes(n.filter(x=>x.pinned));
@@ -410,28 +315,32 @@
       }
 
       async function addTask() {
-        if(!taskTitle.trim())return;
+        if(!taskTitle.trim()) return;
         const{data,error}=await sb.from("tasks").insert({user_id:session.user.id,title:taskTitle.trim(),due_date:taskDue||null,color:taskColor,done:false}).select().single();
-        if(!error){const t=[data,...allTasks];setAllTasks(t);setTasks(t.filter(x=>!x.done).sort((a,b)=>(a.due_date||"9999")>(b.due_date||"9999")?1:-1));setTaskTitle("");setTaskDue("");setTaskColor("#378ADD");setShowTaskForm(false);}
+        if(!error){
+          const t=[data,...allTasks]; setAllTasks(t);
+          setPendingTasks(t.filter(x=>!x.done).sort((a,b)=>(a.due_date||"9999")>(b.due_date||"9999")?1:-1));
+          setTaskTitle(""); setTaskDue(""); setTaskColor("#378ADD"); setShowTaskForm(false);
+        }
       }
 
       async function completeTask(id) {
-        const now = new Date().toISOString();
-        await sb.from("tasks").update({ done: true, updated_at: now }).eq("id", id);
-        const t = allTasks.map(x => x.id===id ? {...x, done:true, updated_at:now} : x);
+        const now2=new Date().toISOString();
+        await sb.from("tasks").update({done:true,updated_at:now2}).eq("id",id);
+        const t=allTasks.map(x=>x.id===id?{...x,done:true,updated_at:now2}:x);
         setAllTasks(t);
-        setTasks(t.filter(x=>!x.done).sort((a,b)=>(a.due_date||"9999")>(b.due_date||"9999")?1:-1));
+        setPendingTasks(t.filter(x=>!x.done).sort((a,b)=>(a.due_date||"9999")>(b.due_date||"9999")?1:-1));
       }
 
       async function unpinNote(note) {
         const{data}=await sb.from("notes").update({pinned:false}).eq("id",note.id).select().single();
-        if(data){const n=allNotes.map(x=>x.id===note.id?data:x);setAllNotes(n);setPinnedNotes(n.filter(x=>x.pinned));setRecentNotes(n.filter(x=>!x.pinned).slice(0,4));}
+        if(data){ const n=allNotes.map(x=>x.id===note.id?data:x); setAllNotes(n); setPinnedNotes(n.filter(x=>x.pinned)); setRecentNotes(n.filter(x=>!x.pinned).slice(0,4)); }
       }
 
       async function saveQuickNote() {
-        if(!quickNote.trim())return;
+        if(!quickNote.trim()) return;
         const{data,error}=await sb.from("notes").insert({user_id:session.user.id,content:quickNote.trim(),tags:quickNoteTags,habit_id:null,pinned:false}).select().single();
-        if(!error){const n=[data,...allNotes];setAllNotes(n);setRecentNotes(n.filter(x=>!x.pinned).slice(0,4));setQuickNote("");setQuickNoteTags([]);setShowNoteForm(false);}
+        if(!error){ const n=[data,...allNotes]; setAllNotes(n); setRecentNotes(n.filter(x=>!x.pinned).slice(0,4)); setQuickNote(""); setQuickNoteTags([]); setShowNoteForm(false); }
       }
 
       const today=getTodayStr();
@@ -445,38 +354,31 @@
         sectionLabel:{fontSize:12,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:10},
         btn:(a)=>({fontSize:13,padding:"6px 12px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:a?"var(--bg2)":"transparent",color:"var(--text)",cursor:"pointer",fontWeight:500}),
         xBtn:{background:"none",border:"none",cursor:"pointer",color:"var(--text2)",fontSize:18,padding:"0 2px",lineHeight:1},
-        grid2:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(280px, 1fr))",gap:"0.75rem",marginBottom:"0.75rem"},
+        grid2:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:"0.75rem",marginBottom:"0.75rem"},
         pill:(a)=>({fontSize:11,padding:"3px 8px",borderRadius:999,border:`0.5px solid ${a?"var(--border2)":"var(--border)"}`,background:a?"var(--bg2)":"transparent",color:a?"var(--text)":"var(--text2)",cursor:"pointer"}),
         input:{fontSize:13,padding:"7px 10px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg)",color:"var(--text)",outline:"none"},
       };
 
-      if(loading)return<div style={{...s.wrap,paddingTop:"3rem",textAlign:"center",color:"var(--text2)"}}>Loading...</div>;
-      if(!session)return<Auth/>;
+      if(loading) return <div style={{...s.wrap,paddingTop:"3rem",textAlign:"center",color:"var(--text2)"}}>Loading...</div>;
+      if(!session) return <Auth/>;
 
       return (
         <div style={s.wrap}>
-          {/* Greeting */}
           <div style={{textAlign:"center",marginBottom:"2rem",padding:"2rem 0 1rem"}}>
             <p style={{fontSize:13,color:"var(--text2)",marginBottom:4,letterSpacing:"0.03em"}}>{dateStr}</p>
             <p style={{fontSize:32,fontWeight:300,color:"var(--text)",letterSpacing:"-0.5px",marginBottom:4}}>{timeStr}</p>
             <p style={{fontSize:15,fontWeight:400,lineHeight:1.6,color:"var(--text2)",fontStyle:"italic",maxWidth:420,margin:"0 auto"}}>{greeting}</p>
           </div>
 
-          {/* Search toggle */}
           <div style={{marginBottom:"0.75rem",display:"flex",justifyContent:"flex-end"}}>
-            <button style={s.btn(showSearch)} onClick={()=>setShowSearch(v=>!v)}>
-              {showSearch?"✕ Close":"⌕ Search"}
-            </button>
+            <button style={s.btn(showSearch)} onClick={()=>setShowSearch(v=>!v)}>{showSearch?"✕ Close":"⌕ Search"}</button>
           </div>
 
-          {showSearch&&<SearchBar habits={habits} habitLogs={habitLogs} tasks={allTasks} notes={allNotes} onClose={()=>setShowSearch(false)}/>}
+          {showSearch&&<SearchBar habits={habits} habitLogs={habitLogs} allTasks={allTasks} allNotes={allNotes} onClose={()=>setShowSearch(false)}/>}
 
-          {/* Reflect card */}
-          <ReflectCard habits={habits} habitLogs={habitLogs} tasks={allTasks} notes={allNotes}/>
+          <ReflectCard habits={habits} habitLogs={habitLogs} allTasks={allTasks} allNotes={allNotes}/>
 
-          {/* Top row */}
           <div style={s.grid2}>
-            {/* Habits */}
             <div style={s.card}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                 <span style={s.sectionLabel}>Habits</span>
@@ -485,7 +387,7 @@
               {habits.length===0&&<p style={{fontSize:13,color:"var(--text2)"}}>No habits yet.</p>}
               {habits.map(h=>{
                 const done=loggedToday.has(h.id);
-                return(
+                return (
                   <a key={h.id} href="/habits.html" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:"0.5px solid var(--border)",textDecoration:"none",color:"var(--text)",minHeight:44}}>
                     <div style={{width:10,height:10,borderRadius:"50%",background:h.color,flexShrink:0}}/>
                     <span style={{fontSize:14,flex:1}}>{h.name}</span>
@@ -496,7 +398,6 @@
               <p style={{fontSize:12,color:"var(--text2)",marginTop:10}}>{loggedToday.size}/{habits.length} done today</p>
             </div>
 
-            {/* Tasks */}
             <div style={s.card}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                 <span style={s.sectionLabel}>Tasks</span>
@@ -515,11 +416,10 @@
                   </div>
                 </div>
               )}
-              {tasks.length===0&&!showTaskForm&&<p style={{fontSize:13,color:"var(--text2)"}}>No tasks. You're clear.</p>}
-              {tasks.map(t=>{
-                const uc=urgencyColor(t);
-                const dl=formatDueDate(t.due_date);
-                return(
+              {pendingTasks.length===0&&!showTaskForm&&<p style={{fontSize:13,color:"var(--text2)"}}>No tasks. You're clear.</p>}
+              {pendingTasks.map(t=>{
+                const uc=urgencyColor(t); const dl=formatDueDate(t.due_date);
+                return (
                   <div key={t.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:"0.5px solid var(--border)",minHeight:44}}>
                     <div style={{width:10,height:10,borderRadius:"50%",background:uc,flexShrink:0}}/>
                     <span style={{fontSize:14,flex:1,color:"var(--text)"}}>{t.title}</span>
@@ -533,7 +433,6 @@
             </div>
           </div>
 
-          {/* Pinned */}
           {pinnedNotes.length>0&&(
             <div style={s.card}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
@@ -545,16 +444,13 @@
                   <div key={note.id} style={{background:"var(--bg2)",borderRadius:"var(--radius)",padding:"10px 12px",position:"relative"}}>
                     <button style={{...s.xBtn,position:"absolute",top:6,right:6,fontSize:14}} onClick={()=>unpinNote(note)}>×</button>
                     <p style={{fontSize:13,lineHeight:1.6,color:"var(--text)",whiteSpace:"pre-wrap",paddingRight:16}}>{note.content.slice(0,120)}{note.content.length>120?"...":""}</p>
-                    <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:8}}>
-                      {(note.tags||[]).map(t=><span key={t} style={{fontSize:10,padding:"2px 6px",borderRadius:999,background:"var(--bg)",color:"var(--text2)"}}>{t}</span>)}
-                    </div>
+                    <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:8}}>{(note.tags||[]).map(t=><span key={t} style={{fontSize:10,padding:"2px 6px",borderRadius:999,background:"var(--bg)",color:"var(--text2)"}}>{t}</span>)}</div>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Recent notes */}
           <div style={s.card}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
               <span style={s.sectionLabel}>Recent notes</span>
