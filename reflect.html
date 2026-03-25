@@ -60,9 +60,14 @@
 
     function Auth() {
       const [email,setEmail]=useState(""); const [pw,setPw]=useState(""); const [mode,setMode]=useState("login"); const [msg,setMsg]=useState(""); const [loading,setLoading]=useState(false);
-      async function submit() { setLoading(true); setMsg(""); if(mode==="login"){const{error}=await sb.auth.signInWithPassword({email,password:pw});if(error)setMsg(error.message);}else{const{error}=await sb.auth.signUp({email,password:pw});if(error)setMsg(error.message);else setMsg("Check your email.");} setLoading(false); }
-      const si = {width:"100%",fontSize:14,padding:"9px 12px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg)",color:"var(--text)",marginBottom:12,outline:"none"};
-      const sb2 = (p) => ({width:"100%",fontSize:14,padding:10,borderRadius:"var(--radius)",border:p?"none":"0.5px solid var(--border2)",background:p?"#1D9E75":"transparent",color:p?"white":"var(--text)",cursor:"pointer",fontWeight:500,marginBottom:10});
+      async function submit() {
+        setLoading(true); setMsg("");
+        if(mode==="login"){const{error}=await sb.auth.signInWithPassword({email,password:pw});if(error)setMsg(error.message);}
+        else{const{error}=await sb.auth.signUp({email,password:pw});if(error)setMsg(error.message);else setMsg("Check your email.");}
+        setLoading(false);
+      }
+      const si={width:"100%",fontSize:14,padding:"9px 12px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg)",color:"var(--text)",marginBottom:12,outline:"none"};
+      const sb2=(p)=>({width:"100%",fontSize:14,padding:10,borderRadius:"var(--radius)",border:p?"none":"0.5px solid var(--border2)",background:p?"#1D9E75":"transparent",color:p?"white":"var(--text)",cursor:"pointer",fontWeight:500,marginBottom:10});
       return (
         <div style={{minHeight:"80vh",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
           <div style={{background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"2rem",width:"100%",maxWidth:360}}>
@@ -89,27 +94,6 @@
       );
     }
 
-    function StatCard({label, value}) {
-      return (
-        <div style={{background:"var(--bg2)",borderRadius:"var(--radius)",padding:"10px 12px",flex:1,minWidth:80}}>
-          <div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>{label}</div>
-          <div style={{fontSize:22,fontWeight:500}}>{value}</div>
-        </div>
-      );
-    }
-
-    function NoteRow({note}) {
-      return (
-        <div style={{padding:"8px 0",borderBottom:"0.5px solid var(--border)"}}>
-          <p style={{fontSize:13,lineHeight:1.5,color:"var(--text)"}}>{note.content.slice(0,120)}{note.content.length>120?"...":""}</p>
-          <div style={{display:"flex",gap:4,alignItems:"center",marginTop:4,flexWrap:"wrap"}}>
-            {(note.tags||[]).map(t=><span key={t} style={{fontSize:10,padding:"1px 6px",borderRadius:999,background:"var(--bg2)",color:"var(--text2)"}}>{t}</span>)}
-            <span style={{fontSize:11,color:"var(--text2)",marginLeft:"auto"}}>{fmtDate(note.created_at?.slice(0,10))}</span>
-          </div>
-        </div>
-      );
-    }
-
     function App() {
       const [session,setSession]=useState(null);
       const [habits,setHabits]=useState([]);
@@ -120,9 +104,9 @@
       const [tab,setTab]=useState("today");
 
       useEffect(()=>{
-        sb.auth.getSession().then(({data:{session}})=>{setSession(session);if(session)loadData(session.user.id);else setLoading(false);});
-        const{data:{subscription}}=sb.auth.onAuthStateChange((_,session)=>{setSession(session);if(session)loadData(session.user.id);else setLoading(false);});
-        return()=>subscription.unsubscribe();
+        sb.auth.getSession().then(({data:{session}})=>{ setSession(session); if(session) loadData(session.user.id); else setLoading(false); });
+        const {data:{subscription}} = sb.auth.onAuthStateChange((_,session)=>{ setSession(session); if(session) loadData(session.user.id); else setLoading(false); });
+        return ()=>subscription.unsubscribe();
       },[]);
 
       async function loadData(uid) {
@@ -135,7 +119,7 @@
         ]);
         const habitsArr = hData||[];
         const logsMap = {};
-        habitsArr.forEach(h=>{ logsMap[h.id]=(lData||[]).filter(l=>l.habit_id===h.id); });
+        habitsArr.forEach(h=>{ logsMap[h.id] = (lData||[]).filter(l=>l.habit_id===h.id); });
         setHabits(habitsArr);
         setHabitLogs(logsMap);
         setTasks(tData||[]);
@@ -146,68 +130,88 @@
       const today = getTodayStr();
       const weekStart = getWeekStart();
       const monthStart = getMonthStart();
-      const daysInMonth = getDaysInMonth();
-      const daysInMonthSoFar = new Date().getDate();
-      const daysInWeekSoFar = Math.min(7, Math.floor((new Date(today+"T00:00:00")-new Date(weekStart+"T00:00:00"))/86400000)+1);
+      const DAYS_IN_WEEK = 7;
+      const DAYS_IN_MONTH = getDaysInMonth();
 
       function inRange(date, from) { return date >= from && date <= today; }
       const allLogs = Object.values(habitLogs).flat();
 
-      // — TODAY —
+      // TODAY
       const dayHabits = habits.map(h => {
-        const todayLogs = (habitLogs[h.id]||[]).filter(l=>l.date===today);
-        return { ...h, done: todayLogs.length>0, mins: todayLogs.reduce((s,l)=>s+l.minutes,0), sessions: todayLogs };
+        const tl = (habitLogs[h.id]||[]).filter(l=>l.date===today);
+        return { ...h, done: tl.length>0, mins: tl.reduce((s,l)=>s+l.minutes,0), sessions: tl };
       });
-      const tasksDoneToday = tasks.filter(t => t.done && (t.updated_at?.slice(0,10)===today || t.created_at?.slice(0,10)===today)).length;
+      const tasksDoneToday = tasks.filter(t=>t.done && (t.updated_at?.slice(0,10)===today||t.created_at?.slice(0,10)===today)).length;
       const tasksPending = tasks.filter(t=>!t.done).length;
       const notesToday = notes.filter(n=>n.created_at?.slice(0,10)===today);
 
-      // — WEEK —
+      // WEEK
       const weekHabits = habits.map(h => {
-        const wlogs = (habitLogs[h.id]||[]).filter(l=>inRange(l.date,weekStart));
-        return { ...h, count: new Set(wlogs.map(l=>l.date)).size, mins: wlogs.reduce((s,l)=>s+l.minutes,0) };
+        const wl = (habitLogs[h.id]||[]).filter(l=>inRange(l.date,weekStart));
+        return { ...h, count: new Set(wl.map(l=>l.date)).size, mins: wl.reduce((s,l)=>s+l.minutes,0) };
       });
       const weekLogs = allLogs.filter(l=>inRange(l.date,weekStart));
       const tasksCreatedWeek = tasks.filter(t=>inRange(t.created_at?.slice(0,10),weekStart)).length;
-      const tasksDoneWeek = tasks.filter(t => t.done && inRange(t.updated_at?.slice(0,10)||t.created_at?.slice(0,10), weekStart)).length;
+      const tasksDoneWeek = tasks.filter(t=>t.done&&inRange((t.updated_at||t.created_at)?.slice(0,10),weekStart)).length;
       const notesWeek = notes.filter(n=>inRange(n.created_at?.slice(0,10),weekStart));
       const dayCounts = {};
       weekLogs.forEach(l=>{ dayCounts[l.date]=(dayCounts[l.date]||0)+1; });
       const bestDay = Object.entries(dayCounts).sort((a,b)=>b[1]-a[1])[0];
-      const weekStartLabel = fmtDate(weekStart);
-      const weekEndLabel = fmtDate(today);
 
-      // — MONTH —
+      // MONTH
       const monthHabits = habits.map(h => {
-        const mlogs = (habitLogs[h.id]||[]).filter(l=>inRange(l.date,monthStart));
-        return { ...h, count: new Set(mlogs.map(l=>l.date)).size, mins: mlogs.reduce((s,l)=>s+l.minutes,0) };
+        const ml = (habitLogs[h.id]||[]).filter(l=>inRange(l.date,monthStart));
+        return { ...h, count: new Set(ml.map(l=>l.date)).size, mins: ml.reduce((s,l)=>s+l.minutes,0) };
       });
       const monthLogs = allLogs.filter(l=>inRange(l.date,monthStart));
       const tasksCreatedMonth = tasks.filter(t=>inRange(t.created_at?.slice(0,10),monthStart)).length;
-      const tasksDoneMonth = tasks.filter(t => t.done && inRange(t.updated_at?.slice(0,10)||t.created_at?.slice(0,10), monthStart)).length;
+      const tasksDoneMonth = tasks.filter(t=>t.done&&inRange((t.updated_at||t.created_at)?.slice(0,10),monthStart)).length;
       const notesMonth = notes.filter(n=>inRange(n.created_at?.slice(0,10),monthStart));
       const totalStudyMins = monthLogs.reduce((s,l)=>s+l.minutes,0);
       const weekCounts = {};
       monthLogs.forEach(l=>{ const w=new Date(l.date+"T00:00:00"); w.setDate(w.getDate()-w.getDay()); const ws=w.toISOString().slice(0,10); weekCounts[ws]=(weekCounts[ws]||0)+1; });
       const mostActiveWeek = Object.entries(weekCounts).sort((a,b)=>b[1]-a[1])[0];
       const monthName = new Date().toLocaleDateString("en-US",{month:"long"});
+      const weekLabel = fmtDate(weekStart) + " – " + fmtDate(today);
 
       const card = {background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"1rem 1.25rem",marginBottom:"0.75rem"};
-      const label = {fontSize:12,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:10};
-      const sublabel = {fontSize:11,color:"var(--text2)",marginBottom:10,marginTop:-6};
-      const tabBtn = (a) => ({fontSize:13,padding:"6px 14px",borderRadius:999,border:`0.5px solid ${a?"var(--border2)":"var(--border)"}`,background:a?"var(--bg2)":"transparent",color:a?"var(--text)":"var(--text2)",cursor:"pointer",fontWeight:a?500:400});
-      const statRow = {display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"};
+      const lbl = {fontSize:12,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6};
+      const sublbl = {fontSize:11,color:"var(--text2)",marginBottom:10};
+      const tabBtn = (a)=>({fontSize:13,padding:"6px 14px",borderRadius:999,border:`0.5px solid ${a?"var(--border2)":"var(--border)"}`,background:a?"var(--bg2)":"transparent",color:a?"var(--text)":"var(--text2)",cursor:"pointer",fontWeight:a?500:400});
+
+      function StatRow({stats}) {
+        return (
+          <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+            {stats.map(s=>(
+              <div key={s.label} style={{background:"var(--bg2)",borderRadius:"var(--radius)",padding:"10px 12px",flex:1,minWidth:80}}>
+                <div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>{s.label}</div>
+                <div style={{fontSize:22,fontWeight:500}}>{s.value}</div>
+              </div>
+            ))}
+          </div>
+        );
+      }
+
+      function NoteRow({note}) {
+        return (
+          <div style={{padding:"8px 0",borderBottom:"0.5px solid var(--border)"}}>
+            <p style={{fontSize:13,lineHeight:1.5,color:"var(--text)"}}>{note.content.slice(0,120)}{note.content.length>120?"...":""}</p>
+            <div style={{display:"flex",gap:4,alignItems:"center",marginTop:4,flexWrap:"wrap"}}>
+              {(note.tags||[]).map(t=><span key={t} style={{fontSize:10,padding:"1px 6px",borderRadius:999,background:"var(--bg2)",color:"var(--text2)"}}>{t}</span>)}
+              <span style={{fontSize:11,color:"var(--text2)",marginLeft:"auto"}}>{fmtDate(note.created_at?.slice(0,10))}</span>
+            </div>
+          </div>
+        );
+      }
 
       if(loading) return <div style={{color:"var(--text)",padding:"3rem 1rem",textAlign:"center"}}>Loading...</div>;
       if(!session) return <Auth/>;
-
-      const todayDisplay = new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
 
       return (
         <div style={{color:"var(--text)",padding:"1.5rem 1rem",maxWidth:580,margin:"0 auto"}}>
           <div style={{marginBottom:"1.5rem"}}>
             <p style={{fontSize:20,fontWeight:500}}>Reflect</p>
-            <p style={{fontSize:13,color:"var(--text2)",marginTop:3}}>{todayDisplay}</p>
+            <p style={{fontSize:13,color:"var(--text2)",marginTop:3}}>{new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})}</p>
           </div>
 
           <div style={{display:"flex",gap:8,marginBottom:"1.25rem"}}>
@@ -216,20 +220,19 @@
             <button style={tabBtn(tab==="month")} onClick={()=>setTab("month")}>This month</button>
           </div>
 
-          {tab==="today" && (
+          {tab==="today"&&(
             <>
               <div style={card}>
-                <div style={label}>Overview</div>
-                <div style={statRow}>
-                  <StatCard label="Habits" value={dayHabits.filter(h=>h.done).length+"/"+habits.length}/>
-                  <StatCard label="Tasks done" value={tasksDoneToday}/>
-                  <StatCard label="Notes" value={notesToday.length}/>
-                  <StatCard label="Pending" value={tasksPending}/>
-                </div>
+                <div style={lbl}>Overview</div>
+                <StatRow stats={[
+                  {label:"Habits",value:dayHabits.filter(h=>h.done).length+"/"+habits.length},
+                  {label:"Tasks done",value:tasksDoneToday},
+                  {label:"Notes",value:notesToday.length},
+                  {label:"Pending",value:tasksPending},
+                ]}/>
               </div>
-
               <div style={card}>
-                <div style={label}>Habits</div>
+                <div style={lbl}>Habits</div>
                 {dayHabits.length===0&&<p style={{fontSize:13,color:"var(--text2)"}}>No habits yet.</p>}
                 {dayHabits.map(h=>(
                   <div key={h.id} style={{marginBottom:12}}>
@@ -238,7 +241,7 @@
                         <div style={{width:10,height:10,borderRadius:"50%",background:h.color,flexShrink:0}}/>
                         <span style={{fontSize:14,fontWeight:500}}>{h.name}</span>
                       </div>
-                      <span style={{fontSize:13,color:h.done?"#1D9E75":"var(--text2)",fontWeight:h.done?500:400,flexShrink:0}}>{h.done?"✓ "+h.mins+" min":"Not logged"}</span>
+                      <span style={{fontSize:13,color:h.done?"#1D9E75":"var(--text2)",fontWeight:h.done?500:400}}>{h.done?"✓ "+h.mins+" min":"Not logged"}</span>
                     </div>
                     {h.sessions.filter(e=>e.notes).map((e,i)=>(
                       <div key={i} style={{fontSize:12,color:"var(--text2)",padding:"4px 8px",background:"var(--bg2)",borderRadius:"var(--radius)",marginTop:4,lineHeight:1.5}}>{e.notes}</div>
@@ -246,32 +249,30 @@
                   </div>
                 ))}
               </div>
-
               {notesToday.length>0&&(
                 <div style={card}>
-                  <div style={label}>Notes today</div>
+                  <div style={lbl}>Notes today</div>
                   {notesToday.map(n=><NoteRow key={n.id} note={n}/>)}
                 </div>
               )}
             </>
           )}
 
-          {tab==="week" && (
+          {tab==="week"&&(
             <>
               <div style={card}>
-                <div style={label}>Overview</div>
-                <div style={sublabel}>{weekStartLabel} – {weekEndLabel} · full week (7 days)</div>
-                <div style={statRow}>
-                  <StatCard label="Sessions" value={weekLogs.length}/>
-                  <StatCard label="Tasks in" value={tasksCreatedWeek}/>
-                  <StatCard label="Tasks done" value={tasksDoneWeek}/>
-                  <StatCard label="Notes" value={notesWeek.length}/>
-                </div>
-                {bestDay&&<p style={{fontSize:12,color:"var(--text2)"}}>Most active day: {fmtFull(bestDay[0])} ({bestDay[1]} session{bestDay[1]!==1?"s":""})</p>}
+                <div style={lbl}>Overview</div>
+                <div style={sublbl}>{weekLabel} · full week ({DAYS_IN_WEEK} days)</div>
+                <StatRow stats={[
+                  {label:"Sessions",value:weekLogs.length},
+                  {label:"Tasks in",value:tasksCreatedWeek},
+                  {label:"Tasks done",value:tasksDoneWeek},
+                  {label:"Notes",value:notesWeek.length},
+                ]}/>
+                {bestDay&&<p style={{fontSize:12,color:"var(--text2)"}}>Most active: {fmtFull(bestDay[0])} ({bestDay[1]} session{bestDay[1]!==1?"s":""})</p>}
               </div>
-
               <div style={card}>
-                <div style={label}>Habit consistency</div>
+                <div style={lbl}>Habit consistency</div>
                 {habits.length===0&&<p style={{fontSize:13,color:"var(--text2)"}}>No habits yet.</p>}
                 {weekHabits.map(h=>(
                   <div key={h.id} style={{marginBottom:14}}>
@@ -280,16 +281,15 @@
                         <div style={{width:10,height:10,borderRadius:"50%",background:h.color,flexShrink:0}}/>
                         <span style={{fontSize:14}}>{h.name}</span>
                       </div>
-                      <span style={{fontSize:12,color:"var(--text2)",flexShrink:0}}>{h.count}/{daysInWeekSoFar} days · {h.mins} min</span>
+                      <span style={{fontSize:12,color:"var(--text2)",flexShrink:0}}>{h.count}/{DAYS_IN_WEEK} days · {h.mins} min</span>
                     </div>
-                    <Bar pct={(h.count/Math.max(1,daysInWeekSoFar))*100} color={h.color}/>
+                    <Bar pct={(h.count/DAYS_IN_WEEK)*100} color={h.color}/>
                   </div>
                 ))}
               </div>
-
               {notesWeek.length>0&&(
                 <div style={card}>
-                  <div style={label}>Notes this week</div>
+                  <div style={lbl}>Notes this week</div>
                   {notesWeek.slice(0,5).map(n=><NoteRow key={n.id} note={n}/>)}
                   {notesWeek.length>5&&<p style={{fontSize:12,color:"var(--text2)",marginTop:8}}>+{notesWeek.length-5} more in Notes</p>}
                 </div>
@@ -297,22 +297,21 @@
             </>
           )}
 
-          {tab==="month" && (
+          {tab==="month"&&(
             <>
               <div style={card}>
-                <div style={label}>Overview</div>
-                <div style={sublabel}>{monthName} · {daysInMonth} days total</div>
-                <div style={statRow}>
-                  <StatCard label="Study mins" value={totalStudyMins}/>
-                  <StatCard label="Tasks in" value={tasksCreatedMonth}/>
-                  <StatCard label="Tasks done" value={tasksDoneMonth}/>
-                  <StatCard label="Notes" value={notesMonth.length}/>
-                </div>
+                <div style={lbl}>Overview</div>
+                <div style={sublbl}>{monthName} · {DAYS_IN_MONTH} days total</div>
+                <StatRow stats={[
+                  {label:"Study mins",value:totalStudyMins},
+                  {label:"Tasks in",value:tasksCreatedMonth},
+                  {label:"Tasks done",value:tasksDoneMonth},
+                  {label:"Notes",value:notesMonth.length},
+                ]}/>
                 {mostActiveWeek&&<p style={{fontSize:12,color:"var(--text2)"}}>Most active week: {fmtDate(mostActiveWeek[0])} ({mostActiveWeek[1]} session{mostActiveWeek[1]!==1?"s":""})</p>}
               </div>
-
               <div style={card}>
-                <div style={label}>Habit consistency</div>
+                <div style={lbl}>Habit consistency</div>
                 {habits.length===0&&<p style={{fontSize:13,color:"var(--text2)"}}>No habits yet.</p>}
                 {monthHabits.map(h=>(
                   <div key={h.id} style={{marginBottom:14}}>
@@ -321,16 +320,15 @@
                         <div style={{width:10,height:10,borderRadius:"50%",background:h.color,flexShrink:0}}/>
                         <span style={{fontSize:14}}>{h.name}</span>
                       </div>
-                      <span style={{fontSize:12,color:"var(--text2)",flexShrink:0}}>{h.count}/{daysInMonthSoFar} days · {h.mins} min</span>
+                      <span style={{fontSize:12,color:"var(--text2)",flexShrink:0}}>{h.count}/{DAYS_IN_MONTH} days · {h.mins} min</span>
                     </div>
-                    <Bar pct={(h.count/Math.max(1,daysInMonthSoFar))*100} color={h.color}/>
+                    <Bar pct={(h.count/DAYS_IN_MONTH)*100} color={h.color}/>
                   </div>
                 ))}
               </div>
-
               {notesMonth.length>0&&(
                 <div style={card}>
-                  <div style={label}>Notes this month</div>
+                  <div style={lbl}>Notes this month</div>
                   {notesMonth.slice(0,5).map(n=><NoteRow key={n.id} note={n}/>)}
                   {notesMonth.length>5&&<p style={{fontSize:12,color:"var(--text2)",marginTop:8}}>+{notesMonth.length-5} more in Notes</p>}
                 </div>
