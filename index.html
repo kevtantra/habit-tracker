@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"/>
+  <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta name="apple-mobile-web-app-title" content="popnoods"/>
+  <link rel="manifest" href="/manifest.json"/>
   <title>popnoods — Space</title>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -15,21 +21,28 @@
     :root {
       --bg: #ffffff; --bg2: #f1f0e8; --border: rgba(0,0,0,0.12);
       --border2: rgba(0,0,0,0.22); --text: #1a1a1a; --text2: #6b6b68;
-      --radius: 8px; --radius-lg: 12px;
+      --radius: 8px; --radius-lg: 12px; --nav-h: 48px; --bottom-nav-h: 60px;
     }
     @media (prefers-color-scheme: dark) {
       body { background: #1a1a1a; color: #f0f0ee; }
-      :root {
-        --bg: #252523; --bg2: #2e2e2b; --border: rgba(255,255,255,0.12);
-        --border2: rgba(255,255,255,0.22); --text: #f0f0ee; --text2: #9a9a96;
-      }
+      :root { --bg: #252523; --bg2: #2e2e2b; --border: rgba(255,255,255,0.12); --border2: rgba(255,255,255,0.22); --text: #f0f0ee; --text2: #9a9a96; }
     }
-    #topnav { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 0.5px solid var(--border); padding: 0 1.25rem; display: flex; align-items: center; justify-content: space-between; height: 48px; }
+    #topnav { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 0.5px solid var(--border); padding: 0 1.25rem; display: flex; align-items: center; justify-content: space-between; height: var(--nav-h); }
     #topnav .brand { font-size: 14px; font-weight: 500; color: var(--text); text-decoration: none; }
     #topnav .navlinks { display: flex; gap: 4px; }
     #topnav .navlinks a { font-size: 13px; color: var(--text2); text-decoration: none; padding: 5px 10px; border-radius: var(--radius); }
     #topnav .navlinks a:hover { background: var(--bg2); color: var(--text); }
     #topnav .navlinks a.active { color: var(--text); font-weight: 500; }
+    #bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: var(--bg); border-top: 0.5px solid var(--border); height: var(--bottom-nav-h); }
+    #bottom-nav a { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-decoration: none; color: var(--text2); font-size: 10px; gap: 3px; padding: 8px 0; -webkit-tap-highlight-color: transparent; }
+    #bottom-nav a.active { color: var(--text); }
+    #bottom-nav a svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    #bottom-nav a.active svg { stroke-width: 2; }
+    @media (max-width: 640px) {
+      #topnav { display: none; }
+      #bottom-nav { display: flex; }
+      body { padding-bottom: var(--bottom-nav-h); }
+    }
   </style>
 </head>
 <body>
@@ -40,11 +53,30 @@
       <a href="/habits.html">Habits</a>
       <a href="/tasks.html">Tasks</a>
       <a href="/notes.html">Notes</a>
+      <a href="/reflect.html">Reflect</a>
     </div>
+  </nav>
+  <nav id="bottom-nav">
+    <a href="/" class="active">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Space
+    </a>
+    <a href="/habits.html">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Habits
+    </a>
+    <a href="/tasks.html">
+      <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Tasks
+    </a>
+    <a href="/notes.html">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Notes
+    </a>
   </nav>
   <div id="root"></div>
   <script type="text/babel">
-    const { useState, useEffect } = React;
+    const { useState, useEffect, useRef } = React;
     const SUPABASE_URL = "https://tdobkblqcvpcgkpehare.supabase.co";
     const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkb2JrYmxxY3ZwY2drcGVoYXJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MTM0MjksImV4cCI6MjA4OTk4OTQyOX0.wwysDOb3C3GXcNg6E6Vrh1BgTJXR_A5CaX_S7Quouks";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -58,6 +90,8 @@
     ];
 
     function getTodayStr() { return new Date().toISOString().slice(0,10); }
+    function getWeekStart() { const d = new Date(); d.setDate(d.getDate() - d.getDay()); return d.toISOString().slice(0,10); }
+    function getMonthStart() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-01`; }
 
     function useNow() {
       const [now, setNow] = useState(new Date());
@@ -79,32 +113,28 @@
       const today = getTodayStr();
       if (str === today) return "Due today";
       if (str < today) return "Overdue";
-      const d = new Date(str + "T00:00:00");
-      return "Due " + d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      return "Due " + new Date(str+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});
     }
 
     function Auth() {
-      const [email, setEmail] = useState("");
-      const [pw, setPw] = useState("");
-      const [mode, setMode] = useState("login");
-      const [msg, setMsg] = useState("");
-      const [loading, setLoading] = useState(false);
-      async function handleSubmit() {
+      const [email,setEmail]=useState(""); const [pw,setPw]=useState("");
+      const [mode,setMode]=useState("login"); const [msg,setMsg]=useState(""); const [loading,setLoading]=useState(false);
+      async function submit() {
         setLoading(true); setMsg("");
-        if (mode === "login") { const { error } = await sb.auth.signInWithPassword({ email, password: pw }); if (error) setMsg(error.message); }
-        else { const { error } = await sb.auth.signUp({ email, password: pw }); if (error) setMsg(error.message); else setMsg("Check your email to confirm."); }
+        if(mode==="login"){const{error}=await sb.auth.signInWithPassword({email,password:pw});if(error)setMsg(error.message);}
+        else{const{error}=await sb.auth.signUp({email,password:pw});if(error)setMsg(error.message);else setMsg("Check your email.");}
         setLoading(false);
       }
-      const si = { width:"100%", fontSize:14, padding:"9px 12px", borderRadius:"var(--radius)", border:"0.5px solid var(--border2)", background:"var(--bg)", color:"var(--text)", marginBottom:12, outline:"none" };
-      const sb2 = (p) => ({ width:"100%", fontSize:14, padding:10, borderRadius:"var(--radius)", border:p?"none":"0.5px solid var(--border2)", background:p?"#1D9E75":"transparent", color:p?"white":"var(--text)", cursor:"pointer", fontWeight:500, marginBottom:10 });
+      const si={width:"100%",fontSize:14,padding:"9px 12px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg)",color:"var(--text)",marginBottom:12,outline:"none"};
+      const sb2=(p)=>({width:"100%",fontSize:14,padding:10,borderRadius:"var(--radius)",border:p?"none":"0.5px solid var(--border2)",background:p?"#1D9E75":"transparent",color:p?"white":"var(--text)",cursor:"pointer",fontWeight:500,marginBottom:10});
       return (
-        <div style={{ minHeight:"80vh", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
-          <div style={{ background:"var(--bg)", border:"0.5px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"2rem", width:"100%", maxWidth:360 }}>
-            <p style={{ fontSize:20, fontWeight:500, marginBottom:6 }}>popnoods</p>
-            <p style={{ fontSize:13, color:"var(--text2)", marginBottom:24 }}>{mode==="login"?"Sign in":"Create account"}</p>
+        <div style={{minHeight:"80vh",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+          <div style={{background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"2rem",width:"100%",maxWidth:360}}>
+            <p style={{fontSize:20,fontWeight:500,marginBottom:6}}>popnoods</p>
+            <p style={{fontSize:13,color:"var(--text2)",marginBottom:24}}>{mode==="login"?"Sign in":"Create account"}</p>
             <input style={si} type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email"/>
-            <input style={si} type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="Password" onKeyDown={e=>e.key==="Enter"&&handleSubmit()}/>
-            <button style={sb2(true)} onClick={handleSubmit} disabled={loading}>{loading?"...":mode==="login"?"Sign in":"Sign up"}</button>
+            <input style={si} type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="Password" onKeyDown={e=>e.key==="Enter"&&submit()}/>
+            <button style={sb2(true)} onClick={submit} disabled={loading}>{loading?"...":mode==="login"?"Sign in":"Sign up"}</button>
             <button style={sb2(false)} onClick={()=>sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:window.location.href}})}>Continue with Google</button>
             {msg&&<p style={{fontSize:13,color:"#D85A30",marginTop:8}}>{msg}</p>}
             <p style={{fontSize:13,color:"var(--text2)",textAlign:"center",marginTop:12,cursor:"pointer"}} onClick={()=>{setMode(mode==="login"?"signup":"login");setMsg("");}}>
@@ -115,164 +145,383 @@
       );
     }
 
+    // — Reflect Card —
+    function ReflectCard({habits, habitLogs, tasks, notes}) {
+      const [tab, setTab] = useState("day");
+      const [open, setOpen] = useState(true);
+      const today = getTodayStr();
+      const weekStart = getWeekStart();
+      const monthStart = getMonthStart();
+
+      function inRange(date, from) { return date >= from && date <= today; }
+
+      const dayHabits = habits.map(h => ({
+        ...h,
+        done: (habitLogs[h.id]||[]).some(l => l.date === today),
+        mins: (habitLogs[h.id]||[]).filter(l=>l.date===today).reduce((s,l)=>s+l.minutes,0),
+      }));
+
+      const weekHabits = habits.map(h => {
+        const days = new Set((habitLogs[h.id]||[]).filter(l=>inRange(l.date,weekStart)).map(l=>l.date));
+        return { ...h, count: days.size };
+      });
+
+      const monthHabits = habits.map(h => {
+        const days = new Set((habitLogs[h.id]||[]).filter(l=>inRange(l.date,monthStart)).map(l=>l.date));
+        const mins = (habitLogs[h.id]||[]).filter(l=>inRange(l.date,monthStart)).reduce((s,l)=>s+l.minutes,0);
+        return { ...h, count: days.size, mins };
+      });
+
+      const allLogs = Object.values(habitLogs).flat();
+      const weekLogs = allLogs.filter(l=>inRange(l.date,weekStart));
+      const monthLogs = allLogs.filter(l=>inRange(l.date,monthStart));
+
+      const tasksDoneToday = tasks.filter(t=>t.done&&t.updated_at&&t.updated_at.slice(0,10)===today).length;
+      const tasksPendingNow = tasks.filter(t=>!t.done).length;
+      const tasksCreatedWeek = tasks.filter(t=>inRange(t.created_at?.slice(0,10),weekStart)).length;
+      const tasksDoneWeek = tasks.filter(t=>t.done&&t.updated_at&&inRange(t.updated_at.slice(0,10),weekStart)).length;
+      const tasksCreatedMonth = tasks.filter(t=>inRange(t.created_at?.slice(0,10),monthStart)).length;
+      const tasksDoneMonth = tasks.filter(t=>t.done&&t.updated_at&&inRange(t.updated_at.slice(0,10),monthStart)).length;
+
+      const notesToday = notes.filter(n=>n.created_at?.slice(0,10)===today).length;
+      const notesWeek = notes.filter(n=>inRange(n.created_at?.slice(0,10),weekStart)).length;
+      const notesMonth = notes.filter(n=>inRange(n.created_at?.slice(0,10),monthStart)).length;
+      const pinnedCount = notes.filter(n=>n.pinned).length;
+
+      // week day count (Mon–Sun)
+      const daysInWeekSoFar = Math.min(7, Math.floor((new Date(today+"T00:00:00") - new Date(weekStart+"T00:00:00"))/86400000)+1);
+      const daysInMonthSoFar = new Date().getDate();
+
+      const s = {
+        card: {background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"1rem 1.25rem",marginBottom:"0.75rem"},
+        label: {fontSize:12,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em"},
+        tab: (a)=>({fontSize:12,padding:"4px 10px",borderRadius:999,border:`0.5px solid ${a?"var(--border2)":"var(--border)"}`,background:a?"var(--bg2)":"transparent",color:a?"var(--text)":"var(--text2)",cursor:"pointer",fontWeight:a?500:400}),
+        stat: {background:"var(--bg2)",borderRadius:"var(--radius)",padding:"10px 12px",flex:1},
+        bar: (pct,color)=>({height:6,borderRadius:3,background:"var(--bg2)",overflow:"hidden",marginTop:4,children:[{width:`${Math.min(100,pct)}%`,height:"100%",background:color||"#1D9E75",borderRadius:3}]}),
+      };
+
+      function Bar({pct, color}) {
+        return (
+          <div style={{height:6,borderRadius:3,background:"var(--bg2)",overflow:"hidden",marginTop:4}}>
+            <div style={{width:`${Math.min(100,pct)}%`,height:"100%",background:color||"#1D9E75",borderRadius:3,transition:"width 0.4s"}}/>
+          </div>
+        );
+      }
+
+      return (
+        <div style={s.card}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:open?12:0}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <span style={s.label}>Reflect</span>
+              <a href="/reflect.html" style={{fontSize:11,color:"var(--text2)",textDecoration:"none"}}>Full view →</a>
+            </div>
+            <div style={{display:"flex",gap:6,alignItems:"center"}}>
+              {open&&["day","week","month"].map(v=>(
+                <button key={v} style={s.tab(tab===v)} onClick={()=>setTab(v)}>{v}</button>
+              ))}
+              <button onClick={()=>setOpen(o=>!o)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text2)",fontSize:18,lineHeight:1,padding:"0 2px"}}>{open?"−":"+"}</button>
+            </div>
+          </div>
+
+          {open && tab==="day" && (
+            <div>
+              <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Habits done</div><div style={{fontSize:20,fontWeight:500}}>{dayHabits.filter(h=>h.done).length}/{habits.length}</div></div>
+                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Tasks done</div><div style={{fontSize:20,fontWeight:500}}>{tasksDoneToday}</div></div>
+                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Notes</div><div style={{fontSize:20,fontWeight:500}}>{notesToday}</div></div>
+                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Pending</div><div style={{fontSize:20,fontWeight:500}}>{tasksPendingNow}</div></div>
+              </div>
+              {dayHabits.map(h=>(
+                <div key={h.id} style={{marginBottom:8}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+                      <div style={{width:8,height:8,borderRadius:"50%",background:h.color}}/>
+                      <span style={{fontSize:13}}>{h.name}</span>
+                    </div>
+                    <span style={{fontSize:12,color:h.done?"#1D9E75":"var(--text2)",fontWeight:h.done?500:400}}>{h.done?`✓ ${h.mins}min`:"—"}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {open && tab==="week" && (
+            <div>
+              <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Study sessions</div><div style={{fontSize:20,fontWeight:500}}>{weekLogs.length}</div></div>
+                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Tasks in/out</div><div style={{fontSize:20,fontWeight:500}}>{tasksCreatedWeek}/{tasksDoneWeek}</div></div>
+                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Notes</div><div style={{fontSize:20,fontWeight:500}}>{notesWeek}</div></div>
+              </div>
+              {weekHabits.map(h=>(
+                <div key={h.id} style={{marginBottom:10}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+                      <div style={{width:8,height:8,borderRadius:"50%",background:h.color}}/>
+                      <span style={{fontSize:13}}>{h.name}</span>
+                    </div>
+                    <span style={{fontSize:12,color:"var(--text2)"}}>{h.count}/{daysInWeekSoFar} days</span>
+                  </div>
+                  <Bar pct={(h.count/daysInWeekSoFar)*100} color={h.color}/>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {open && tab==="month" && (
+            <div>
+              <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Study mins</div><div style={{fontSize:20,fontWeight:500}}>{monthLogs.reduce((s,l)=>s+l.minutes,0)}</div></div>
+                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Tasks in/out</div><div style={{fontSize:20,fontWeight:500}}>{tasksCreatedMonth}/{tasksDoneMonth}</div></div>
+                <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Notes</div><div style={{fontSize:20,fontWeight:500}}>{notesMonth}</div></div>
+                {pinnedCount>0&&<div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Pinned</div><div style={{fontSize:20,fontWeight:500}}>{pinnedCount}</div></div>}
+              </div>
+              {monthHabits.map(h=>(
+                <div key={h.id} style={{marginBottom:10}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+                      <div style={{width:8,height:8,borderRadius:"50%",background:h.color}}/>
+                      <span style={{fontSize:13}}>{h.name}</span>
+                    </div>
+                    <span style={{fontSize:12,color:"var(--text2)"}}>{h.count}/{daysInMonthSoFar} days · {h.mins}min</span>
+                  </div>
+                  <Bar pct={(h.count/daysInMonthSoFar)*100} color={h.color}/>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // — Search —
+    function SearchBar({habits, habitLogs, tasks, notes, onClose}) {
+      const [q, setQ] = useState("");
+      const ref = useRef();
+      useEffect(()=>{ ref.current?.focus(); },[]);
+
+      const query = q.trim().toLowerCase();
+      if (!query) return (
+        <div style={{padding:"1rem",background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",marginBottom:"0.75rem"}}>
+          <input ref={ref} type="text" placeholder="Search notes, tasks, habits..." value={q} onChange={e=>setQ(e.target.value)} style={{width:"100%",fontSize:14,padding:"8px 10px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg2)",color:"var(--text)",outline:"none"}}/>
+          <p style={{fontSize:12,color:"var(--text2)",marginTop:8,textAlign:"center"}}>Type to search across everything</p>
+        </div>
+      );
+
+      const matchedNotes = notes.filter(n=>n.content?.toLowerCase().includes(query)||(n.tags||[]).some(t=>t.toLowerCase().includes(query)));
+      const matchedTasks = tasks.filter(t=>t.title?.toLowerCase().includes(query));
+      const allLogs = Object.values(habitLogs).flat();
+      const matchedLogs = allLogs.filter(l=>l.notes?.toLowerCase().includes(query));
+
+      const total = matchedNotes.length + matchedTasks.length + matchedLogs.length;
+
+      return (
+        <div style={{background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"1rem",marginBottom:"0.75rem"}}>
+          <div style={{display:"flex",gap:8,marginBottom:12}}>
+            <input ref={ref} type="text" placeholder="Search..." value={q} onChange={e=>setQ(e.target.value)} style={{flex:1,fontSize:14,padding:"8px 10px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg2)",color:"var(--text)",outline:"none"}}/>
+            <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text2)",fontSize:18,padding:"0 4px"}}>×</button>
+          </div>
+          {total===0&&<p style={{fontSize:13,color:"var(--text2)"}}>No results for "{q}"</p>}
+          {matchedNotes.length>0&&(
+            <div style={{marginBottom:12}}>
+              <p style={{fontSize:11,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>Notes ({matchedNotes.length})</p>
+              {matchedNotes.slice(0,3).map(n=>(
+                <a key={n.id} href="/notes.html" style={{display:"block",padding:"6px 0",borderBottom:"0.5px solid var(--border)",textDecoration:"none"}}>
+                  <p style={{fontSize:13,color:"var(--text)",lineHeight:1.5}}>{n.content.slice(0,80)}{n.content.length>80?"...":""}</p>
+                  <div style={{display:"flex",gap:4,marginTop:3}}>{(n.tags||[]).map(t=><span key={t} style={{fontSize:10,padding:"1px 6px",borderRadius:999,background:"var(--bg2)",color:"var(--text2)"}}>{t}</span>)}</div>
+                </a>
+              ))}
+            </div>
+          )}
+          {matchedTasks.length>0&&(
+            <div style={{marginBottom:12}}>
+              <p style={{fontSize:11,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>Tasks ({matchedTasks.length})</p>
+              {matchedTasks.slice(0,3).map(t=>(
+                <a key={t.id} href="/tasks.html" style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderBottom:"0.5px solid var(--border)",textDecoration:"none"}}>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:t.color,flexShrink:0}}/>
+                  <span style={{fontSize:13,color:"var(--text)",textDecoration:t.done?"line-through":"none"}}>{t.title}</span>
+                </a>
+              ))}
+            </div>
+          )}
+          {matchedLogs.length>0&&(
+            <div>
+              <p style={{fontSize:11,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>Session notes ({matchedLogs.length})</p>
+              {matchedLogs.slice(0,3).map((l,i)=>(
+                <a key={i} href="/habits.html" style={{display:"block",padding:"6px 0",borderBottom:"0.5px solid var(--border)",textDecoration:"none"}}>
+                  <p style={{fontSize:13,color:"var(--text)"}}>{l.notes}</p>
+                  <p style={{fontSize:11,color:"var(--text2)",marginTop:2}}>{l.date} · {l.minutes}min</p>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
     function App() {
-      const [session, setSession] = useState(null);
-      const [habits, setHabits] = useState([]);
-      const [habitLogs, setHabitLogs] = useState([]);
-      const [tasks, setTasks] = useState([]);
-      const [pinnedNotes, setPinnedNotes] = useState([]);
-      const [recentNotes, setRecentNotes] = useState([]);
-      const [loading, setLoading] = useState(true);
-      const [greeting] = useState(GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
-      const now = useNow();
+      const [session,setSession]=useState(null);
+      const [habits,setHabits]=useState([]);
+      const [habitLogs,setHabitLogs]=useState({});
+      const [tasks,setTasks]=useState([]);
+      const [allTasks,setAllTasks]=useState([]);
+      const [pinnedNotes,setPinnedNotes]=useState([]);
+      const [recentNotes,setRecentNotes]=useState([]);
+      const [allNotes,setAllNotes]=useState([]);
+      const [loading,setLoading]=useState(true);
+      const [greeting]=useState(GREETINGS[Math.floor(Math.random()*GREETINGS.length)]);
+      const now=useNow();
+      const [showTaskForm,setShowTaskForm]=useState(false);
+      const [taskTitle,setTaskTitle]=useState("");
+      const [taskDue,setTaskDue]=useState("");
+      const [taskColor,setTaskColor]=useState("#378ADD");
+      const [showNoteForm,setShowNoteForm]=useState(false);
+      const [quickNote,setQuickNote]=useState("");
+      const [quickNoteTags,setQuickNoteTags]=useState([]);
+      const [showSearch,setShowSearch]=useState(false);
 
-      // task form
-      const [showTaskForm, setShowTaskForm] = useState(false);
-      const [taskTitle, setTaskTitle] = useState("");
-      const [taskDue, setTaskDue] = useState("");
-      const [taskColor, setTaskColor] = useState("#378ADD");
-
-      // note form
-      const [showNoteForm, setShowNoteForm] = useState(false);
-      const [quickNote, setQuickNote] = useState("");
-      const [quickNoteTags, setQuickNoteTags] = useState([]);
-
-      useEffect(() => {
-        sb.auth.getSession().then(({ data: { session } }) => {
-          setSession(session);
-          if (session) loadData(session.user.id); else setLoading(false);
-        });
-        const { data: { subscription } } = sb.auth.onAuthStateChange((_, session) => {
-          setSession(session);
-          if (session) loadData(session.user.id); else setLoading(false);
-        });
-        return () => subscription.unsubscribe();
-      }, []);
+      useEffect(()=>{
+        sb.auth.getSession().then(({data:{session}})=>{setSession(session);if(session)loadData(session.user.id);else setLoading(false);});
+        const{data:{subscription}}=sb.auth.onAuthStateChange((_,session)=>{setSession(session);if(session)loadData(session.user.id);else setLoading(false);});
+        return()=>subscription.unsubscribe();
+      },[]);
 
       async function loadData(uid) {
         setLoading(true);
-        const [{ data: hData }, { data: lData }, { data: tData }, { data: nData }] = await Promise.all([
-          sb.from("habits").select("*").eq("user_id", uid),
-          sb.from("habit_logs").select("*").eq("user_id", uid),
-          sb.from("tasks").select("*").eq("user_id", uid).eq("done", false).order("due_date", { ascending: true }),
-          sb.from("notes").select("*").eq("user_id", uid).order("created_at", { ascending: false }).limit(20),
+        const[{data:hData},{data:lData},{data:tData},{data:nData}]=await Promise.all([
+          sb.from("habits").select("*").eq("user_id",uid),
+          sb.from("habit_logs").select("*").eq("user_id",uid),
+          sb.from("tasks").select("*").eq("user_id",uid).order("created_at",{ascending:false}),
+          sb.from("notes").select("*").eq("user_id",uid).order("created_at",{ascending:false}),
         ]);
-        setHabits(hData || []);
-        setHabitLogs(lData || []);
-        setTasks(tData || []);
-        setPinnedNotes((nData || []).filter(n => n.pinned));
-        setRecentNotes((nData || []).filter(n => !n.pinned).slice(0, 4));
+        const habitsArr=hData||[];
+        const logsMap={};
+        habitsArr.forEach(h=>{logsMap[h.id]=(lData||[]).filter(l=>l.habit_id===h.id);});
+        setHabits(habitsArr);
+        setHabitLogs(logsMap);
+        const t=tData||[];
+        setAllTasks(t);
+        setTasks(t.filter(x=>!x.done).sort((a,b)=>(a.due_date||"9999")>(b.due_date||"9999")?1:-1));
+        const n=nData||[];
+        setAllNotes(n);
+        setPinnedNotes(n.filter(x=>x.pinned));
+        setRecentNotes(n.filter(x=>!x.pinned).slice(0,4));
         setLoading(false);
       }
 
       async function addTask() {
-        if (!taskTitle.trim()) return;
-        const { data, error } = await sb.from("tasks").insert({ user_id: session.user.id, title: taskTitle.trim(), due_date: taskDue || null, color: taskColor, done: false }).select().single();
-        if (!error) {
-          setTasks([...tasks, data].sort((a,b) => (a.due_date||"9999") > (b.due_date||"9999") ? 1 : -1));
-          setTaskTitle(""); setTaskDue(""); setTaskColor("#378ADD"); setShowTaskForm(false);
-        }
+        if(!taskTitle.trim())return;
+        const{data,error}=await sb.from("tasks").insert({user_id:session.user.id,title:taskTitle.trim(),due_date:taskDue||null,color:taskColor,done:false}).select().single();
+        if(!error){const t=[data,...allTasks];setAllTasks(t);setTasks(t.filter(x=>!x.done).sort((a,b)=>(a.due_date||"9999")>(b.due_date||"9999")?1:-1));setTaskTitle("");setTaskDue("");setTaskColor("#378ADD");setShowTaskForm(false);}
       }
 
       async function completeTask(id) {
-        await sb.from("tasks").update({ done: true }).eq("id", id);
-        setTasks(tasks.filter(t => t.id !== id));
+        await sb.from("tasks").update({done:true}).eq("id",id);
+        const t=allTasks.map(x=>x.id===id?{...x,done:true}:x);
+        setAllTasks(t);setTasks(t.filter(x=>!x.done).sort((a,b)=>(a.due_date||"9999")>(b.due_date||"9999")?1:-1));
       }
 
       async function unpinNote(note) {
-        const { data } = await sb.from("notes").update({ pinned: false }).eq("id", note.id).select().single();
-        if (data) { setPinnedNotes(pinnedNotes.filter(n => n.id !== note.id)); setRecentNotes([data, ...recentNotes].slice(0, 4)); }
+        const{data}=await sb.from("notes").update({pinned:false}).eq("id",note.id).select().single();
+        if(data){const n=allNotes.map(x=>x.id===note.id?data:x);setAllNotes(n);setPinnedNotes(n.filter(x=>x.pinned));setRecentNotes(n.filter(x=>!x.pinned).slice(0,4));}
       }
 
       async function saveQuickNote() {
-        if (!quickNote.trim()) return;
-        const { data, error } = await sb.from("notes").insert({ user_id: session.user.id, content: quickNote.trim(), tags: quickNoteTags, habit_id: null, pinned: false }).select().single();
-        if (!error) { setRecentNotes([data, ...recentNotes].slice(0, 4)); setQuickNote(""); setQuickNoteTags([]); setShowNoteForm(false); }
+        if(!quickNote.trim())return;
+        const{data,error}=await sb.from("notes").insert({user_id:session.user.id,content:quickNote.trim(),tags:quickNoteTags,habit_id:null,pinned:false}).select().single();
+        if(!error){const n=[data,...allNotes];setAllNotes(n);setRecentNotes(n.filter(x=>!x.pinned).slice(0,4));setQuickNote("");setQuickNoteTags([]);setShowNoteForm(false);}
       }
 
-      const today = getTodayStr();
-      const loggedToday = new Set(habitLogs.filter(l => l.date === today).map(l => l.habit_id));
-      const dateStr = now.toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" });
-      const timeStr = now.toLocaleTimeString("en-US", { hour:"2-digit", minute:"2-digit", second:"2-digit" });
+      const today=getTodayStr();
+      const loggedToday=new Set(Object.entries(habitLogs).filter(([,logs])=>logs.some(l=>l.date===today)).map(([id])=>id));
+      const dateStr=now.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+      const timeStr=now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
 
-      const s = {
-        wrap: { color:"var(--text)", padding:"1.5rem 1rem", maxWidth:680, margin:"0 auto" },
-        card: { background:"var(--bg)", border:"0.5px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"1rem 1.25rem", marginBottom:"0.75rem" },
-        sectionLabel: { fontSize:12, fontWeight:500, color:"var(--text2)", textTransform:"uppercase", letterSpacing:"0.04em", marginBottom:10 },
-        btn: (a) => ({ fontSize:13, padding:"6px 12px", borderRadius:"var(--radius)", border:"0.5px solid var(--border2)", background:a?"var(--bg2)":"transparent", color:"var(--text)", cursor:"pointer", fontWeight:500 }),
-        xBtn: { background:"none", border:"none", cursor:"pointer", color:"var(--text2)", fontSize:18, padding:"0 2px", lineHeight:1 },
-        grid2: { display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(280px, 1fr))", gap:"0.75rem", marginBottom:"0.75rem" },
-        pill: (a) => ({ fontSize:11, padding:"3px 8px", borderRadius:999, border:`0.5px solid ${a?"var(--border2)":"var(--border)"}`, background:a?"var(--bg2)":"transparent", color:a?"var(--text)":"var(--text2)", cursor:"pointer" }),
-        input: { fontSize:13, padding:"7px 10px", borderRadius:"var(--radius)", border:"0.5px solid var(--border2)", background:"var(--bg)", color:"var(--text)", outline:"none" },
+      const s={
+        wrap:{color:"var(--text)",padding:"1.5rem 1rem",maxWidth:680,margin:"0 auto"},
+        card:{background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"1rem 1.25rem",marginBottom:"0.75rem"},
+        sectionLabel:{fontSize:12,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:10},
+        btn:(a)=>({fontSize:13,padding:"6px 12px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:a?"var(--bg2)":"transparent",color:"var(--text)",cursor:"pointer",fontWeight:500}),
+        xBtn:{background:"none",border:"none",cursor:"pointer",color:"var(--text2)",fontSize:18,padding:"0 2px",lineHeight:1},
+        grid2:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(280px, 1fr))",gap:"0.75rem",marginBottom:"0.75rem"},
+        pill:(a)=>({fontSize:11,padding:"3px 8px",borderRadius:999,border:`0.5px solid ${a?"var(--border2)":"var(--border)"}`,background:a?"var(--bg2)":"transparent",color:a?"var(--text)":"var(--text2)",cursor:"pointer"}),
+        input:{fontSize:13,padding:"7px 10px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg)",color:"var(--text)",outline:"none"},
       };
 
-      if (loading) return <div style={{ ...s.wrap, paddingTop:"3rem", textAlign:"center", color:"var(--text2)" }}>Loading...</div>;
-      if (!session) return <Auth />;
+      if(loading)return<div style={{...s.wrap,paddingTop:"3rem",textAlign:"center",color:"var(--text2)"}}>Loading...</div>;
+      if(!session)return<Auth/>;
 
       return (
         <div style={s.wrap}>
-
           {/* Greeting */}
-          <div style={{ textAlign:"center", marginBottom:"2.5rem", padding:"2rem 0 1rem" }}>
-            <p style={{ fontSize:13, color:"var(--text2)", marginBottom:4, letterSpacing:"0.03em" }}>{dateStr}</p>
-            <p style={{ fontSize:32, fontWeight:300, color:"var(--text)", letterSpacing:"-0.5px", marginBottom:4 }}>{timeStr}</p>
-            <p style={{ fontSize:15, fontWeight:400, lineHeight:1.6, color:"var(--text2)", fontStyle:"italic", maxWidth:420, margin:"0 auto" }}>{greeting}</p>
+          <div style={{textAlign:"center",marginBottom:"2rem",padding:"2rem 0 1rem"}}>
+            <p style={{fontSize:13,color:"var(--text2)",marginBottom:4,letterSpacing:"0.03em"}}>{dateStr}</p>
+            <p style={{fontSize:32,fontWeight:300,color:"var(--text)",letterSpacing:"-0.5px",marginBottom:4}}>{timeStr}</p>
+            <p style={{fontSize:15,fontWeight:400,lineHeight:1.6,color:"var(--text2)",fontStyle:"italic",maxWidth:420,margin:"0 auto"}}>{greeting}</p>
           </div>
 
-          {/* Top row — Habits + Tasks */}
-          <div style={s.grid2}>
+          {/* Search toggle */}
+          <div style={{marginBottom:"0.75rem",display:"flex",justifyContent:"flex-end"}}>
+            <button style={s.btn(showSearch)} onClick={()=>setShowSearch(v=>!v)}>
+              {showSearch?"✕ Close":"⌕ Search"}
+            </button>
+          </div>
 
+          {showSearch&&<SearchBar habits={habits} habitLogs={habitLogs} tasks={allTasks} notes={allNotes} onClose={()=>setShowSearch(false)}/>}
+
+          {/* Reflect card */}
+          <ReflectCard habits={habits} habitLogs={habitLogs} tasks={allTasks} notes={allNotes}/>
+
+          {/* Top row */}
+          <div style={s.grid2}>
             {/* Habits */}
             <div style={s.card}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                 <span style={s.sectionLabel}>Habits</span>
-                <a href="/habits.html" style={{ fontSize:12, color:"var(--text2)", textDecoration:"none" }}>View all →</a>
+                <a href="/habits.html" style={{fontSize:12,color:"var(--text2)",textDecoration:"none"}}>View all →</a>
               </div>
-              {habits.length === 0 && <p style={{ fontSize:13, color:"var(--text2)" }}>No habits yet.</p>}
-              {habits.map(h => {
-                const done = loggedToday.has(h.id);
-                return (
-                  <a key={h.id} href="/habits.html" style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 0", borderBottom:"0.5px solid var(--border)", textDecoration:"none", color:"var(--text)" }}>
-                    <div style={{ width:10, height:10, borderRadius:"50%", background:h.color, flexShrink:0 }}/>
-                    <span style={{ fontSize:14, flex:1 }}>{h.name}</span>
-                    <span style={{ fontSize:13, color:done?"#1D9E75":"var(--text2)", fontWeight:done?500:400 }}>{done?"✓ Done":"○ Pending"}</span>
+              {habits.length===0&&<p style={{fontSize:13,color:"var(--text2)"}}>No habits yet.</p>}
+              {habits.map(h=>{
+                const done=loggedToday.has(h.id);
+                return(
+                  <a key={h.id} href="/habits.html" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:"0.5px solid var(--border)",textDecoration:"none",color:"var(--text)",minHeight:44}}>
+                    <div style={{width:10,height:10,borderRadius:"50%",background:h.color,flexShrink:0}}/>
+                    <span style={{fontSize:14,flex:1}}>{h.name}</span>
+                    <span style={{fontSize:13,color:done?"#1D9E75":"var(--text2)",fontWeight:done?500:400}}>{done?"✓ Done":"○ Pending"}</span>
                   </a>
                 );
               })}
-              <p style={{ fontSize:12, color:"var(--text2)", marginTop:10 }}>{loggedToday.size}/{habits.length} done today</p>
+              <p style={{fontSize:12,color:"var(--text2)",marginTop:10}}>{loggedToday.size}/{habits.length} done today</p>
             </div>
 
             {/* Tasks */}
             <div style={s.card}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                 <span style={s.sectionLabel}>Tasks</span>
-                <button style={s.btn(false)} onClick={() => setShowTaskForm(v => !v)}>+ Add</button>
+                <button style={s.btn(false)} onClick={()=>setShowTaskForm(v=>!v)}>+ Add</button>
               </div>
-
-              {showTaskForm && (
-                <div style={{ marginBottom:12, padding:"10px 12px", background:"var(--bg2)", borderRadius:"var(--radius)" }}>
-                  <input type="text" placeholder="Task title..." value={taskTitle} onChange={e=>setTaskTitle(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addTask()} style={{ ...s.input, width:"100%", marginBottom:8 }}/>
-                  <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:8 }}>
-                    <input type="date" value={taskDue} onChange={e=>setTaskDue(e.target.value)} style={{ ...s.input, flex:1 }}/>
-                    <input type="color" value={taskColor} onChange={e=>setTaskColor(e.target.value)} style={{ width:32, height:32, borderRadius:"var(--radius)", border:"0.5px solid var(--border2)", cursor:"pointer", padding:2, background:"none" }}/>
+              {showTaskForm&&(
+                <div style={{marginBottom:12,padding:"10px 12px",background:"var(--bg2)",borderRadius:"var(--radius)"}}>
+                  <input type="text" placeholder="Task title..." value={taskTitle} onChange={e=>setTaskTitle(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addTask()} style={{...s.input,width:"100%",marginBottom:8}}/>
+                  <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:8}}>
+                    <input type="date" value={taskDue} onChange={e=>setTaskDue(e.target.value)} style={{...s.input,flex:1}}/>
+                    <input type="color" value={taskColor} onChange={e=>setTaskColor(e.target.value)} style={{width:32,height:32,borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",cursor:"pointer",padding:2,background:"none"}}/>
                   </div>
-                  <div style={{ display:"flex", gap:8 }}>
-                    <button style={{ ...s.btn(true), background:"#1D9E75", color:"white", border:"none" }} onClick={addTask}>Save</button>
-                    <button style={s.btn(false)} onClick={() => setShowTaskForm(false)}>Cancel</button>
+                  <div style={{display:"flex",gap:8}}>
+                    <button style={{...s.btn(true),background:"#1D9E75",color:"white",border:"none"}} onClick={addTask}>Save</button>
+                    <button style={s.btn(false)} onClick={()=>setShowTaskForm(false)}>Cancel</button>
                   </div>
                 </div>
               )}
-
-              {tasks.length === 0 && !showTaskForm && <p style={{ fontSize:13, color:"var(--text2)" }}>No tasks. You're clear.</p>}
-              {tasks.map(t => {
-                const uc = urgencyColor(t);
-                const dueLabel = formatDueDate(t.due_date);
-                return (
-                  <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 0", borderBottom:"0.5px solid var(--border)" }}>
-                    <div style={{ width:10, height:10, borderRadius:"50%", background:uc, flexShrink:0 }}/>
-                    <span style={{ fontSize:14, flex:1, color:"var(--text)" }}>{t.title}</span>
-                    {dueLabel && <span style={{ fontSize:11, color:uc, fontWeight:500, whiteSpace:"nowrap" }}>{dueLabel}</span>}
-                    <button onClick={() => completeTask(t.id)} style={{ background:"none", border:`1.5px solid ${uc}`, borderRadius:"50%", width:20, height:20, cursor:"pointer", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+              {tasks.length===0&&!showTaskForm&&<p style={{fontSize:13,color:"var(--text2)"}}>No tasks. You're clear.</p>}
+              {tasks.map(t=>{
+                const uc=urgencyColor(t);
+                const dl=formatDueDate(t.due_date);
+                return(
+                  <div key={t.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:"0.5px solid var(--border)",minHeight:44}}>
+                    <div style={{width:10,height:10,borderRadius:"50%",background:uc,flexShrink:0}}/>
+                    <span style={{fontSize:14,flex:1,color:"var(--text)"}}>{t.title}</span>
+                    {dl&&<span style={{fontSize:11,color:uc,fontWeight:500,whiteSpace:"nowrap"}}>{dl}</span>}
+                    <button onClick={()=>completeTask(t.id)} style={{background:"none",border:`1.5px solid ${uc}`,borderRadius:"50%",width:24,height:24,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",padding:0}}>
                       <svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke={uc} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </button>
                   </div>
@@ -281,20 +530,20 @@
             </div>
           </div>
 
-          {/* Pinned notes */}
-          {pinnedNotes.length > 0 && (
+          {/* Pinned */}
+          {pinnedNotes.length>0&&(
             <div style={s.card}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                 <span style={s.sectionLabel}>📌 Pinned</span>
-                <a href="/notes.html" style={{ fontSize:12, color:"var(--text2)", textDecoration:"none" }}>View all →</a>
+                <a href="/notes.html" style={{fontSize:12,color:"var(--text2)",textDecoration:"none"}}>View all →</a>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(200px, 1fr))", gap:10 }}>
-                {pinnedNotes.map(note => (
-                  <div key={note.id} style={{ background:"var(--bg2)", borderRadius:"var(--radius)", padding:"10px 12px", position:"relative" }}>
-                    <button style={{ ...s.xBtn, position:"absolute", top:6, right:6, fontSize:14 }} onClick={() => unpinNote(note)}>×</button>
-                    <p style={{ fontSize:13, lineHeight:1.6, color:"var(--text)", whiteSpace:"pre-wrap", paddingRight:16 }}>{note.content.slice(0,120)}{note.content.length>120?"...":""}</p>
-                    <div style={{ display:"flex", gap:4, flexWrap:"wrap", marginTop:8 }}>
-                      {(note.tags||[]).map(t=><span key={t} style={{ fontSize:10, padding:"2px 6px", borderRadius:999, background:"var(--bg)", color:"var(--text2)" }}>{t}</span>)}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
+                {pinnedNotes.map(note=>(
+                  <div key={note.id} style={{background:"var(--bg2)",borderRadius:"var(--radius)",padding:"10px 12px",position:"relative"}}>
+                    <button style={{...s.xBtn,position:"absolute",top:6,right:6,fontSize:14}} onClick={()=>unpinNote(note)}>×</button>
+                    <p style={{fontSize:13,lineHeight:1.6,color:"var(--text)",whiteSpace:"pre-wrap",paddingRight:16}}>{note.content.slice(0,120)}{note.content.length>120?"...":""}</p>
+                    <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:8}}>
+                      {(note.tags||[]).map(t=><span key={t} style={{fontSize:10,padding:"2px 6px",borderRadius:999,background:"var(--bg)",color:"var(--text2)"}}>{t}</span>)}
                     </div>
                   </div>
                 ))}
@@ -304,44 +553,41 @@
 
           {/* Recent notes */}
           <div style={s.card}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
               <span style={s.sectionLabel}>Recent notes</span>
-              <a href="/notes.html" style={{ fontSize:12, color:"var(--text2)", textDecoration:"none" }}>View all →</a>
+              <a href="/notes.html" style={{fontSize:12,color:"var(--text2)",textDecoration:"none"}}>View all →</a>
             </div>
-            {recentNotes.length === 0 && !showNoteForm && <p style={{ fontSize:13, color:"var(--text2)", marginBottom:12 }}>No notes yet.</p>}
-            {recentNotes.map(note => (
-              <div key={note.id} style={{ padding:"8px 0", borderBottom:"0.5px solid var(--border)" }}>
-                <p style={{ fontSize:13, color:"var(--text)", whiteSpace:"pre-wrap", lineHeight:1.5 }}>{note.content.slice(0,100)}{note.content.length>100?"...":""}</p>
-                <div style={{ display:"flex", gap:6, alignItems:"center", marginTop:4 }}>
-                  {(note.tags||[]).map(t=><span key={t} style={{ fontSize:10, padding:"2px 6px", borderRadius:999, background:"var(--bg2)", color:"var(--text2)" }}>{t}</span>)}
-                  <span style={{ fontSize:11, color:"var(--text2)", marginLeft:"auto" }}>{new Date(note.created_at).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>
+            {recentNotes.length===0&&!showNoteForm&&<p style={{fontSize:13,color:"var(--text2)",marginBottom:12}}>No notes yet.</p>}
+            {recentNotes.map(note=>(
+              <div key={note.id} style={{padding:"8px 0",borderBottom:"0.5px solid var(--border)"}}>
+                <p style={{fontSize:13,color:"var(--text)",whiteSpace:"pre-wrap",lineHeight:1.5}}>{note.content.slice(0,100)}{note.content.length>100?"...":""}</p>
+                <div style={{display:"flex",gap:6,alignItems:"center",marginTop:4}}>
+                  {(note.tags||[]).map(t=><span key={t} style={{fontSize:10,padding:"2px 6px",borderRadius:999,background:"var(--bg2)",color:"var(--text2)"}}>{t}</span>)}
+                  <span style={{fontSize:11,color:"var(--text2)",marginLeft:"auto"}}>{new Date(note.created_at).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>
                 </div>
               </div>
             ))}
-
-            {showNoteForm ? (
-              <div style={{ marginTop:12 }}>
-                <textarea autoFocus placeholder="Capture a quick note..." value={quickNote} onChange={e=>setQuickNote(e.target.value)} style={{ width:"100%", fontSize:13, padding:"8px 10px", borderRadius:"var(--radius)", border:"0.5px solid var(--border2)", background:"var(--bg)", color:"var(--text)", resize:"none", minHeight:70, outline:"none", fontFamily:"inherit", marginBottom:8 }}/>
-                <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:8 }}>
+            {showNoteForm?(
+              <div style={{marginTop:12}}>
+                <textarea autoFocus placeholder="Capture a quick note..." value={quickNote} onChange={e=>setQuickNote(e.target.value)} style={{width:"100%",fontSize:13,padding:"8px 10px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg)",color:"var(--text)",resize:"none",minHeight:70,outline:"none",fontFamily:"inherit",marginBottom:8}}/>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
                   {["Personal","Work","Ideas","Later"].map(t=>(
                     <button key={t} onClick={()=>setQuickNoteTags(prev=>prev.includes(t)?prev.filter(x=>x!==t):[...prev,t])} style={s.pill(quickNoteTags.includes(t))}>{t}</button>
                   ))}
                 </div>
-                <div style={{ display:"flex", gap:8 }}>
-                  <button style={{ fontSize:13, padding:"6px 14px", borderRadius:"var(--radius)", border:"none", background:"#1D9E75", color:"white", cursor:"pointer", fontWeight:500 }} onClick={saveQuickNote}>Save</button>
+                <div style={{display:"flex",gap:8}}>
+                  <button style={{fontSize:13,padding:"6px 14px",borderRadius:"var(--radius)",border:"none",background:"#1D9E75",color:"white",cursor:"pointer",fontWeight:500}} onClick={saveQuickNote}>Save</button>
                   <button style={s.btn(false)} onClick={()=>{setShowNoteForm(false);setQuickNote("");setQuickNoteTags([]);}}>Cancel</button>
                 </div>
               </div>
-            ) : (
-              <button style={{ ...s.btn(false), marginTop:12, fontSize:12 }} onClick={()=>setShowNoteForm(true)}>+ Quick note</button>
+            ):(
+              <button style={{...s.btn(false),marginTop:12,fontSize:12}} onClick={()=>setShowNoteForm(true)}>+ Quick note</button>
             )}
           </div>
 
-          {/* Sign out */}
-          <div style={{ textAlign:"right", marginTop:"1rem" }}>
+          <div style={{textAlign:"right",marginTop:"1rem"}}>
             <button style={s.btn(false)} onClick={()=>sb.auth.signOut()}>Sign out</button>
           </div>
-
         </div>
       );
     }
