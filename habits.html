@@ -10,14 +10,11 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f9f9f7; color: #1a1a1a; min-height: 100vh; }
-    input, textarea, button, select { font-family: inherit; }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:#f9f9f7; color:#1a1a1a; min-height:100vh; }
+    input, textarea, button, select { font-family:inherit; }
     :root { --bg:#ffffff; --bg2:#f1f0e8; --border:rgba(0,0,0,0.12); --border2:rgba(0,0,0,0.22); --text:#1a1a1a; --text2:#6b6b68; --radius:8px; --radius-lg:12px; }
-    @media (prefers-color-scheme: dark) {
-      body { background:#1a1a1a; color:#f0f0ee; }
-      :root { --bg:#252523; --bg2:#2e2e2b; --border:rgba(255,255,255,0.12); --border2:rgba(255,255,255,0.22); --text:#f0f0ee; --text2:#9a9a96; }
-    }
+    @media (prefers-color-scheme:dark) { body { background:#1a1a1a; color:#f0f0ee; } :root { --bg:#252523; --bg2:#2e2e2b; --border:rgba(255,255,255,0.12); --border2:rgba(255,255,255,0.22); --text:#f0f0ee; --text2:#9a9a96; } }
     #topnav { position:sticky; top:0; z-index:100; background:var(--bg); border-bottom:0.5px solid var(--border); padding:0 1.25rem; display:flex; align-items:center; justify-content:space-between; height:48px; }
     #topnav .brand { font-size:14px; font-weight:500; color:var(--text); text-decoration:none; }
     #topnav .navlinks { display:flex; gap:4px; }
@@ -57,6 +54,7 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
     const COLORS = ["#1D9E75","#378ADD","#D85A30","#D4537E","#7F77DD","#BA7517","#639922","#E24B4A"];
     const FIXED_TAGS = ["Personal","Work","Ideas","Later"];
+
     function getTodayStr() { return new Date().toISOString().slice(0,10); }
     function formatDate(str) { return new Date(str+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}); }
     function calcStreaks(logs) {
@@ -66,6 +64,72 @@
       for(let i=1;i<dates.length;i++){const diff=(new Date(dates[i]+"T00:00:00")-new Date(dates[i-1]+"T00:00:00"))/86400000;streak=diff===1?streak+1:1;if(streak>longest)longest=streak;}
       const gap=(new Date(getTodayStr()+"T00:00:00")-new Date(dates[dates.length-1]+"T00:00:00"))/86400000;
       return{current:gap<=1?streak:0,longest};
+    }
+
+    // — Note Popup —
+    function NotePopup({note, habitName, onClose, onEdit, onDelete}) {
+      const habit = habitName || (note.tags||[]).find(t=>!FIXED_TAGS.includes(t));
+      return (
+        <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"var(--bg)",borderRadius:"var(--radius-lg)",border:"0.5px solid var(--border2)",padding:"1.5rem",maxWidth:520,width:"100%",maxHeight:"80vh",overflowY:"auto"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
+              <div style={{flex:1,marginRight:12}}>
+                {note.title&&<p style={{fontSize:16,fontWeight:500,marginBottom:4}}>{note.title}</p>}
+                <p style={{fontSize:12,color:"var(--text2)"}}>{formatDate(note.created_at?.slice(0,10))}</p>
+              </div>
+              <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text2)",fontSize:20,lineHeight:1,padding:0,flexShrink:0}}>×</button>
+            </div>
+            {note.content&&<p style={{fontSize:14,lineHeight:1.7,color:"var(--text)",whiteSpace:"pre-wrap",marginBottom:16}}>{note.content}</p>}
+            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
+              {habit&&<span style={{fontSize:11,padding:"2px 8px",borderRadius:999,background:"var(--bg2)",color:"var(--text2)"}}>🔗 {habit}</span>}
+              {(note.tags||[]).filter(t=>FIXED_TAGS.includes(t)).map(t=><span key={t} style={{fontSize:11,padding:"2px 8px",borderRadius:999,background:"var(--bg2)",color:"var(--text2)"}}>{t}</span>)}
+            </div>
+            <div style={{display:"flex",gap:8,borderTop:"0.5px solid var(--border)",paddingTop:12}}>
+              <button onClick={onEdit} style={{fontSize:13,padding:"6px 14px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"transparent",color:"var(--text)",cursor:"pointer",fontWeight:500}}>Edit</button>
+              <button onClick={onDelete} style={{fontSize:13,padding:"6px 14px",borderRadius:"var(--radius)",border:"0.5px solid #E24B4A",background:"transparent",color:"#E24B4A",cursor:"pointer"}}>Delete</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // — Note Edit Modal —
+    function NoteEditModal({note, habits, onSave, onClose}) {
+      const [title,setTitle]=useState(note?.title||"");
+      const [content,setContent]=useState(note?.content||"");
+      const [tags,setTags]=useState(note?.tags?.filter(t=>FIXED_TAGS.includes(t))||[]);
+      const [habitId,setHabitId]=useState(note?.habit_id||"");
+      function toggleTag(t){setTags(prev=>prev.includes(t)?prev.filter(x=>x!==t):[...prev,t]);}
+      async function save(){
+        if(!title.trim()) return;
+        const habitObj=habits.find(h=>h.id===habitId);
+        const allTags=habitObj?[...new Set([...tags,habitObj.name])]:tags;
+        const{data,error}=await sb.from("notes").update({title:title.trim(),content:content.trim(),tags:allTags,habit_id:habitId||null,updated_at:new Date().toISOString()}).eq("id",note.id).select().single();
+        if(!error) onSave(data);
+      }
+      const si={fontSize:14,padding:"8px 10px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg)",color:"var(--text)",outline:"none",width:"100%"};
+      return (
+        <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"var(--bg)",borderRadius:"var(--radius-lg)",border:"0.5px solid var(--border2)",padding:"1.5rem",maxWidth:520,width:"100%",maxHeight:"80vh",overflowY:"auto"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+              <span style={{fontSize:14,fontWeight:500}}>Edit note</span>
+              <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text2)",fontSize:20,lineHeight:1,padding:0}}>×</button>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              <input type="text" placeholder="Title" value={title} onChange={e=>setTitle(e.target.value)} style={si}/>
+              <textarea placeholder="Notes..." value={content} onChange={e=>setContent(e.target.value)} style={{...si,resize:"vertical",minHeight:100,fontFamily:"inherit"}}/>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                {FIXED_TAGS.map(t=><button key={t} onClick={()=>toggleTag(t)} style={{fontSize:12,padding:"4px 10px",borderRadius:999,border:`0.5px solid ${tags.includes(t)?"var(--border2)":"var(--border)"}`,background:tags.includes(t)?"var(--bg2)":"transparent",color:tags.includes(t)?"var(--text)":"var(--text2)",cursor:"pointer"}}>{t}</button>)}
+              </div>
+              <select value={habitId} onChange={e=>setHabitId(e.target.value)} style={{...si,width:"auto"}}>
+                <option value="">No habit link</option>
+                {habits.map(h=><option key={h.id} value={h.id}>{h.name}</option>)}
+              </select>
+              <button onClick={save} style={{fontSize:13,padding:"8px 14px",borderRadius:"var(--radius)",border:"none",background:"#1D9E75",color:"white",cursor:"pointer",fontWeight:500,alignSelf:"flex-start"}}>Save</button>
+            </div>
+          </div>
+        </div>
+      );
     }
 
     function Auth() {
@@ -107,25 +171,98 @@
     }
 
     function App() {
-      const [session,setSession]=useState(null);const [habits,setHabits]=useState([]);const [logs,setLogs]=useState({});const [view,setView]=useState("overview");const [logView,setLogView]=useState("today");const [newHabit,setNewHabit]=useState("");const [adding,setAdding]=useState(false);const [minutes,setMinutes]=useState("");const [notes,setNotes]=useState("");const [saved,setSaved]=useState(false);const [loading,setLoading]=useState(true);const [habitNotes,setHabitNotes]=useState([]);const [noteContent,setNoteContent]=useState("");const [noteTags,setNoteTags]=useState([]);const [noteSaved,setNoteSaved]=useState(false);const [visibleNotes,setVisibleNotes]=useState(5);
+      const [session,setSession]=useState(null);
+      const [habits,setHabits]=useState([]);
+      const [logs,setLogs]=useState({});
+      const [view,setView]=useState("overview");
+      const [logView,setLogView]=useState("today");
+      const [newHabit,setNewHabit]=useState("");
+      const [adding,setAdding]=useState(false);
+      const [minutes,setMinutes]=useState("");
+      const [sessionTitle,setSessionTitle]=useState("");
+      const [sessionNotes,setSessionNotes]=useState("");
+      const [saved,setSaved]=useState(false);
+      const [loading,setLoading]=useState(true);
+      const [habitNotes,setHabitNotes]=useState([]);
+      const [noteTags,setNoteTags]=useState([]);
+      const [visibleNotes,setVisibleNotes]=useState(5);
+      const [popupNote,setPopupNote]=useState(null);
+      const [editingNote,setEditingNote]=useState(null);
 
       useEffect(()=>{sb.auth.getSession().then(({data:{session}})=>{setSession(session);if(session)loadData(session.user.id);else setLoading(false);});const{data:{subscription}}=sb.auth.onAuthStateChange((_,session)=>{setSession(session);if(session)loadData(session.user.id);else{setLoading(false);setHabits([]);setLogs({});}});return()=>subscription.unsubscribe();},[]);
 
       async function loadData(uid){setLoading(true);const[{data:hData},{data:lData}]=await Promise.all([sb.from("habits").select("*").eq("user_id",uid).order("created_at"),sb.from("habit_logs").select("*").eq("user_id",uid)]);const habitsArr=hData||[];const logsMap={};habitsArr.forEach(h=>{logsMap[h.id]=(lData||[]).filter(l=>l.habit_id===h.id);});setHabits(habitsArr);setLogs(logsMap);setLoading(false);}
 
-      useEffect(()=>{if(!session||view==="overview")return;setVisibleNotes(5);sb.from("notes").select("*").eq("user_id",session.user.id).eq("habit_id",view).order("created_at",{ascending:false}).then(({data})=>setHabitNotes(data||[]));},[view]);
+      useEffect(()=>{if(!session||view==="overview")return;setVisibleNotes(5);loadHabitNotes();},[view]);
+
+      async function loadHabitNotes(){
+        const{data}=await sb.from("notes").select("*").eq("user_id",session.user.id).eq("habit_id",view).order("created_at",{ascending:false});
+        setHabitNotes(data||[]);
+      }
 
       async function addHabit(){const name=newHabit.trim();if(!name)return;const color=COLORS[habits.length%COLORS.length];const{data,error}=await sb.from("habits").insert({name,color,user_id:session.user.id}).select().single();if(!error){setHabits([...habits,data]);setLogs({...logs,[data.id]:[]});}setNewHabit("");setAdding(false);}
       async function deleteHabit(id){await sb.from("habits").delete().eq("id",id);setHabits(habits.filter(h=>h.id!==id));const nl={...logs};delete nl[id];setLogs(nl);setView("overview");}
-      async function logSession(habitId){if(!minutes&&!notes)return;const entry={habit_id:habitId,user_id:session.user.id,date:getTodayStr(),minutes:parseInt(minutes)||0,notes:notes.trim()};const{data,error}=await sb.from("habit_logs").insert(entry).select().single();if(!error){setLogs({...logs,[habitId]:[...(logs[habitId]||[]),data]});setMinutes("");setNotes("");setSaved(true);setTimeout(()=>setSaved(false),2000);}}
+
+      async function logSession(habitId){
+        if(!minutes&&!sessionTitle) return;
+        const activeHabit=habits.find(h=>h.id===habitId);
+        // 1. Save habit log entry
+        const entry={habit_id:habitId,user_id:session.user.id,date:getTodayStr(),minutes:parseInt(minutes)||0,notes:sessionTitle};
+        const{data:logData,error:logError}=await sb.from("habit_logs").insert(entry).select().single();
+        if(logError) return;
+        setLogs({...logs,[habitId]:[...(logs[habitId]||[]),logData]});
+        // 2. Save as proper note linked to habit
+        if(sessionTitle.trim()){
+          const noteData={user_id:session.user.id,title:sessionTitle.trim(),content:sessionNotes.trim(),tags:[activeHabit.name,...noteTags],habit_id:habitId,pinned:false};
+          const{data:nd}=await sb.from("notes").insert(noteData).select().single();
+          if(nd) setHabitNotes(prev=>[nd,...prev]);
+        }
+        setMinutes("");setSessionTitle("");setSessionNotes("");setNoteTags([]);
+        setSaved(true);setTimeout(()=>setSaved(false),2000);
+      }
+
       async function deleteEntry(habitId,id){await sb.from("habit_logs").delete().eq("id",id);setLogs({...logs,[habitId]:(logs[habitId]||[]).filter(e=>e.id!==id)});}
-      async function saveHabitNote(){if(!noteContent.trim())return;const activeHabit=habits.find(h=>h.id===view);const allTags=[...new Set([...noteTags,activeHabit.name])];const{data,error}=await sb.from("notes").insert({user_id:session.user.id,content:noteContent.trim(),tags:allTags,habit_id:view,pinned:false}).select().single();if(!error){setHabitNotes([data,...habitNotes]);setNoteContent("");setNoteTags([]);setNoteSaved(true);setTimeout(()=>setNoteSaved(false),2000);}}
-      async function deleteHabitNote(id){await sb.from("notes").delete().eq("id",id);setHabitNotes(habitNotes.filter(n=>n.id!==id));}
-      function toggleNoteTag(tag){setNoteTags(prev=>prev.includes(tag)?prev.filter(t=>t!==tag):[...prev,tag]);}
 
-      const today=getTodayStr();const activeHabit=habits.find(h=>h.id===view);const habitLogs=activeHabit?(logs[activeHabit.id]||[]):[];const todayLogs=habitLogs.filter(l=>l.date===today);const doneToday=todayLogs.length>0;const totalMinsToday=todayLogs.reduce((s,l)=>s+l.minutes,0);const{current,longest}=activeHabit?calcStreaks(habitLogs):{current:0,longest:0};const totalDays=activeHabit?new Set(habitLogs.map(l=>l.date)).size:0;const totalMins=habitLogs.reduce((s,l)=>s+l.minutes,0);const recentDays=[...new Set(habitLogs.map(l=>l.date))].sort().reverse().slice(0,30);
+      async function deleteNote(id){
+        await sb.from("notes").delete().eq("id",id);
+        setHabitNotes(habitNotes.filter(n=>n.id!==id));
+        setPopupNote(null);
+      }
 
-      const s={wrap:{color:"var(--text)",padding:"1.5rem 1rem",maxWidth:540,margin:"0 auto"},row:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"1.25rem"},card:{background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"1rem 1.25rem",marginBottom:"0.75rem"},btn:(a)=>({fontSize:13,padding:"7px 14px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:a?"var(--bg2)":"transparent",color:"var(--text)",cursor:"pointer",fontWeight:500}),ghost:{background:"none",border:"none",cursor:"pointer",color:"var(--text2)",fontSize:13,padding:0},tab:(a)=>({fontSize:13,padding:"6px 14px",borderRadius:"var(--radius)",border:`0.5px solid ${a?"var(--border2)":"var(--border)"}`,background:a?"var(--bg2)":"transparent",color:a?"var(--text)":"var(--text2)",cursor:"pointer",fontWeight:a?500:400}),check:(done)=>({width:22,height:22,borderRadius:"50%",border:`2px solid ${done?"#1D9E75":"var(--border2)"}`,background:done?"#1D9E75":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}),input:{fontSize:14,padding:"8px 10px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg)",color:"var(--text)",outline:"none"},textarea:{fontSize:14,padding:"8px 10px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg)",color:"var(--text)",resize:"vertical",minHeight:70,outline:"none",fontFamily:"inherit",width:"100%"},entryChip:{background:"var(--bg2)",borderRadius:"var(--radius)",padding:"8px 12px",marginBottom:8,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8},dayBlock:{background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"10px 14px",marginBottom:8},xBtn:{background:"none",border:"none",cursor:"pointer",color:"var(--text2)",fontSize:18,lineHeight:1,padding:"0 2px",flexShrink:0},statCard:{background:"var(--bg2)",borderRadius:"var(--radius)",padding:"10px 12px"},pill:(a)=>({fontSize:12,padding:"4px 10px",borderRadius:999,border:`0.5px solid ${a?"var(--border2)":"var(--border)"}`,background:a?"var(--bg2)":"transparent",color:a?"var(--text)":"var(--text2)",cursor:"pointer"})};
+      async function saveEditedNote(updated){
+        setHabitNotes(habitNotes.map(n=>n.id===updated.id?updated:n));
+        if(popupNote?.id===updated.id) setPopupNote(updated);
+        setEditingNote(null);
+      }
+
+      const today=getTodayStr();
+      const activeHabit=habits.find(h=>h.id===view);
+      const habitLogs=activeHabit?(logs[activeHabit.id]||[]):[];
+      const todayLogs=habitLogs.filter(l=>l.date===today);
+      const doneToday=todayLogs.length>0;
+      const totalMinsToday=todayLogs.reduce((s,l)=>s+l.minutes,0);
+      const{current,longest}=activeHabit?calcStreaks(habitLogs):{current:0,longest:0};
+      const totalDays=activeHabit?new Set(habitLogs.map(l=>l.date)).size:0;
+      const totalMins=habitLogs.reduce((s,l)=>s+l.minutes,0);
+      const recentDays=[...new Set(habitLogs.map(l=>l.date))].sort().reverse().slice(0,30);
+
+      const s={
+        wrap:{color:"var(--text)",padding:"1.5rem 1rem",maxWidth:540,margin:"0 auto"},
+        row:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"1.25rem"},
+        card:{background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"1rem 1.25rem",marginBottom:"0.75rem"},
+        btn:(a)=>({fontSize:13,padding:"7px 14px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:a?"var(--bg2)":"transparent",color:"var(--text)",cursor:"pointer",fontWeight:500}),
+        ghost:{background:"none",border:"none",cursor:"pointer",color:"var(--text2)",fontSize:13,padding:0},
+        tab:(a)=>({fontSize:13,padding:"6px 14px",borderRadius:"var(--radius)",border:`0.5px solid ${a?"var(--border2)":"var(--border)"}`,background:a?"var(--bg2)":"transparent",color:a?"var(--text)":"var(--text2)",cursor:"pointer",fontWeight:a?500:400}),
+        check:(done)=>({width:22,height:22,borderRadius:"50%",border:`2px solid ${done?"#1D9E75":"var(--border2)"}`,background:done?"#1D9E75":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}),
+        input:{fontSize:14,padding:"8px 10px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg)",color:"var(--text)",outline:"none"},
+        textarea:{fontSize:14,padding:"8px 10px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg)",color:"var(--text)",resize:"vertical",minHeight:80,outline:"none",fontFamily:"inherit",width:"100%"},
+        entryChip:{background:"var(--bg2)",borderRadius:"var(--radius)",padding:"8px 12px",marginBottom:8,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8},
+        dayBlock:{background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"10px 14px",marginBottom:8},
+        xBtn:{background:"none",border:"none",cursor:"pointer",color:"var(--text2)",fontSize:18,lineHeight:1,padding:"0 2px",flexShrink:0},
+        statCard:{background:"var(--bg2)",borderRadius:"var(--radius)",padding:"10px 12px"},
+        pill:(a)=>({fontSize:12,padding:"4px 10px",borderRadius:999,border:`0.5px solid ${a?"var(--border2)":"var(--border)"}`,background:a?"var(--bg2)":"transparent",color:a?"var(--text)":"var(--text2)",cursor:"pointer"}),
+        noteCard:{background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"10px 14px",marginBottom:8,cursor:"pointer"},
+      };
 
       if(loading)return<div style={{...s.wrap,paddingTop:"3rem",textAlign:"center",color:"var(--text2)"}}>Loading...</div>;
       if(!session)return<Auth/>;
@@ -135,7 +272,125 @@
         return(<div style={s.wrap}><div style={s.row}><div><p style={{fontSize:20,fontWeight:500}}>My Habits</p><p style={{fontSize:13,color:"var(--text2)",marginTop:3}}>{todayCount}/{habits.length} done today</p></div><div style={{display:"flex",gap:8}}><button style={s.btn(true)} onClick={()=>setAdding(true)}>+ Add habit</button><button style={s.btn(false)} onClick={()=>sb.auth.signOut()}>Sign out</button></div></div><OverviewCalendar habits={habits} logs={logs}/>{habits.map(h=>{const hl=logs[h.id]||[];const done=hl.some(l=>l.date===today);const{current}=calcStreaks(hl);const days=new Set(hl.map(l=>l.date)).size;return(<div key={h.id} style={{...s.card,cursor:"pointer",display:"flex",alignItems:"center",gap:14}} onClick={()=>{setView(h.id);setLogView("today");}}><div style={{width:14,height:14,borderRadius:"50%",background:h.color,flexShrink:0}}/><div style={{flex:1}}><div style={{fontSize:15,fontWeight:500}}>{h.name}</div><div style={{fontSize:12,color:"var(--text2)"}}>{days} days · {current}d streak</div></div><div style={{fontSize:18,color:done?"#1D9E75":"var(--border2)"}}>{done?"✓":"○"}</div></div>);})}{habits.length===0&&<div style={{fontSize:14,color:"var(--text2)"}}>No habits yet. Add one to get started!</div>}{adding&&(<div style={s.card}><div style={{fontSize:13,fontWeight:500,marginBottom:10}}>New habit</div><input autoFocus type="text" placeholder="e.g. Read, Exercise, Meditate..." value={newHabit} onChange={e=>setNewHabit(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")addHabit();if(e.key==="Escape"){setAdding(false);setNewHabit("");}}} style={{...s.input,width:"100%",marginBottom:10}}/><div style={{display:"flex",gap:8}}><button style={s.btn(true)} onClick={addHabit}>Add</button><button style={s.btn(false)} onClick={()=>{setAdding(false);setNewHabit("");}}>Cancel</button></div></div>)}</div>);
       }
 
-      return(<div style={s.wrap}><div style={{...s.row,marginBottom:"1rem"}}><div style={{display:"flex",alignItems:"center",gap:10}}><button style={s.ghost} onClick={()=>setView("overview")}>← Back</button><div style={{width:14,height:14,borderRadius:"50%",background:activeHabit.color}}/><p style={{fontSize:20,fontWeight:500,margin:0}}>{activeHabit.name}</p></div><button style={{fontSize:12,color:"var(--text2)",background:"none",border:"0.5px solid var(--border)",borderRadius:"var(--radius)",padding:"5px 10px",cursor:"pointer"}} onClick={()=>deleteHabit(activeHabit.id)}>Delete</button></div><div style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:10,marginBottom:"1.25rem"}}>{[{label:"Current streak",val:`${current}d`},{label:"Longest streak",val:`${longest}d`},{label:"Days done",val:totalDays},{label:"Total mins",val:totalMins}].map(c=>(<div key={c.label} style={s.statCard}><div style={{fontSize:11,color:"var(--text2)",marginBottom:4}}>{c.label}</div><div style={{fontSize:20,fontWeight:500}}>{c.val}</div></div>))}</div><HabitCalendar logs={habitLogs} color={activeHabit.color}/><div style={{display:"flex",gap:8,marginBottom:"1.25rem"}}>{["today","history","notes"].map(v=>(<button key={v} style={s.tab(logView===v)} onClick={()=>setLogView(v)}>{v==="today"?"Today":v==="history"?"History":"Notes"}</button>))}</div>{logView==="today"&&(<><div style={s.card}><div style={{fontSize:12,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:10}}>Today — {formatDate(today)}</div><div style={{display:"flex",alignItems:"center",gap:10,marginBottom:doneToday?12:0}}><div style={s.check(doneToday)}>{doneToday&&<svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}</div><span style={{fontSize:15,fontWeight:500}}>{doneToday?`Done! ${totalMinsToday} min logged`:"Not logged yet"}</span></div>{todayLogs.map((e,i)=>(<div key={i} style={s.entryChip}><div><div style={{fontSize:13,fontWeight:500}}>{e.minutes} min</div>{e.notes&&<div style={{fontSize:13,color:"var(--text2)",marginTop:2}}>{e.notes}</div>}</div><button style={s.xBtn} onClick={()=>deleteEntry(activeHabit.id,e.id)}>×</button></div>))}</div><div style={s.card}><div style={{fontSize:12,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:12}}>Log a session</div><div style={{display:"flex",flexDirection:"column",gap:10}}><div><div style={{fontSize:12,color:"var(--text2)",marginBottom:4}}>Minutes</div><input type="number" min="1" placeholder="e.g. 30" value={minutes} onChange={e=>setMinutes(e.target.value)} style={{...s.input,width:110}}/></div><div><div style={{fontSize:12,color:"var(--text2)",marginBottom:4}}>Notes (optional)</div><textarea placeholder="What did you work on?" value={notes} onChange={e=>setNotes(e.target.value)} style={s.textarea}/></div><button style={{...s.btn(true),background:saved?"#1D9E75":"var(--bg2)",color:saved?"white":"var(--text)",border:`0.5px solid ${saved?"#1D9E75":"var(--border2)"}`,transition:"all 0.2s",alignSelf:"flex-start"}} onClick={()=>logSession(activeHabit.id)}>{saved?"✓ Done!":"Done"}</button></div></div></>)}{logView==="history"&&(<div>{recentDays.length===0&&<div style={{fontSize:14,color:"var(--text2)"}}>No sessions yet.</div>}{recentDays.map(date=>{const dl=habitLogs.filter(l=>l.date===date);const mins=dl.reduce((s,l)=>s+l.minutes,0);return(<div key={date} style={s.dayBlock}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:dl.some(e=>e.notes)?6:0}}><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:8,height:8,borderRadius:"50%",background:activeHabit.color}}/><span style={{fontSize:13,fontWeight:500}}>{formatDate(date)}</span></div><span style={{fontSize:12,color:"var(--text2)"}}>{mins} min</span></div>{dl.map((e,i)=>(<div key={i} style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,marginTop:4}}><div>{e.notes&&<div style={{fontSize:13,color:"var(--text2)"}}>{e.notes}</div>}</div><button style={s.xBtn} onClick={()=>deleteEntry(activeHabit.id,e.id)}>×</button></div>))}</div>);})}</div>)}{logView==="notes"&&(<div><div style={s.card}><div style={{fontSize:12,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:12}}>Quick note</div><textarea placeholder="Capture a thought about this habit..." value={noteContent} onChange={e=>setNoteContent(e.target.value)} style={{...s.textarea,marginBottom:10}}/><div style={{fontSize:12,color:"var(--text2)",marginBottom:6}}>Tags</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>{FIXED_TAGS.map(t=>(<button key={t} onClick={()=>toggleNoteTag(t)} style={s.pill(noteTags.includes(t))}>{t}</button>))}</div><button style={{...s.btn(true),background:noteSaved?"#1D9E75":"var(--bg2)",color:noteSaved?"white":"var(--text)",border:`0.5px solid ${noteSaved?"#1D9E75":"var(--border2)"}`,transition:"all 0.2s"}} onClick={saveHabitNote}>{noteSaved?"✓ Saved!":"Save note"}</button></div>{habitNotes.length===0&&<div style={{fontSize:14,color:"var(--text2)"}}>No notes yet for this habit.</div>}{habitNotes.slice(0,visibleNotes).map(note=>(<div key={note.id} style={s.card}><div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}><p style={{fontSize:14,lineHeight:1.6,color:"var(--text2)",flex:1,whiteSpace:"pre-wrap"}}>{note.content}</p><button style={s.xBtn} onClick={()=>deleteHabitNote(note.id)}>×</button></div><div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center",marginTop:8}}>{(note.tags||[]).map(t=><span key={t} style={{fontSize:11,padding:"2px 8px",borderRadius:999,background:"var(--bg2)",color:"var(--text2)"}}>{t}</span>)}<span style={{fontSize:11,color:"var(--text2)",marginLeft:"auto"}}>{new Date(note.created_at).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span></div></div>))}{visibleNotes<habitNotes.length&&(<button style={{...s.btn(false),width:"100%",marginTop:4}} onClick={()=>setVisibleNotes(v=>v+5)}>Load more ({habitNotes.length-visibleNotes} remaining)</button>)}</div>)}</div>);
+      return(
+        <div style={s.wrap}>
+          {popupNote&&<NotePopup note={popupNote} habitName={activeHabit?.name} onClose={()=>setPopupNote(null)} onEdit={()=>{setEditingNote(popupNote);setPopupNote(null);}} onDelete={()=>deleteNote(popupNote.id)}/>}
+          {editingNote&&<NoteEditModal note={editingNote} habits={habits} onSave={saveEditedNote} onClose={()=>setEditingNote(null)}/>}
+
+          <div style={{...s.row,marginBottom:"1rem"}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <button style={s.ghost} onClick={()=>setView("overview")}>← Back</button>
+              <div style={{width:14,height:14,borderRadius:"50%",background:activeHabit.color}}/>
+              <p style={{fontSize:20,fontWeight:500,margin:0}}>{activeHabit.name}</p>
+            </div>
+            <button style={{fontSize:12,color:"var(--text2)",background:"none",border:"0.5px solid var(--border)",borderRadius:"var(--radius)",padding:"5px 10px",cursor:"pointer"}} onClick={()=>deleteHabit(activeHabit.id)}>Delete</button>
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:10,marginBottom:"1.25rem"}}>
+            {[{label:"Current streak",val:`${current}d`},{label:"Longest streak",val:`${longest}d`},{label:"Days done",val:totalDays},{label:"Total mins",val:totalMins}].map(c=>(<div key={c.label} style={s.statCard}><div style={{fontSize:11,color:"var(--text2)",marginBottom:4}}>{c.label}</div><div style={{fontSize:20,fontWeight:500}}>{c.val}</div></div>))}
+          </div>
+
+          <HabitCalendar logs={habitLogs} color={activeHabit.color}/>
+
+          <div style={{display:"flex",gap:8,marginBottom:"1.25rem"}}>
+            {["today","history","notes"].map(v=>(<button key={v} style={s.tab(logView===v)} onClick={()=>setLogView(v)}>{v==="today"?"Today":v==="history"?"History":"Notes"}</button>))}
+          </div>
+
+          {logView==="today"&&(
+            <>
+              <div style={s.card}>
+                <div style={{fontSize:12,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:10}}>Today — {formatDate(today)}</div>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:doneToday?12:0}}>
+                  <div style={s.check(doneToday)}>{doneToday&&<svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}</div>
+                  <span style={{fontSize:15,fontWeight:500}}>{doneToday?`Done! ${totalMinsToday} min logged`:"Not logged yet"}</span>
+                </div>
+                {todayLogs.map((e,i)=>(
+                  <div key={i} style={s.entryChip}>
+                    <div>
+                      <div style={{fontSize:13,fontWeight:500}}>{e.notes||"Session"} <span style={{fontWeight:400,color:"var(--text2)"}}>· {e.minutes} min</span></div>
+                      <div style={{fontSize:11,color:"var(--text2)",marginTop:2}}>{formatDate(e.date)}</div>
+                    </div>
+                    <button style={s.xBtn} onClick={()=>deleteEntry(activeHabit.id,e.id)}>×</button>
+                  </div>
+                ))}
+              </div>
+
+              <div style={s.card}>
+                <div style={{fontSize:12,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:12}}>Log a session</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  <div>
+                    <div style={{fontSize:12,color:"var(--text2)",marginBottom:4}}>Title <span style={{color:"var(--border2)"}}>*</span></div>
+                    <input type="text" placeholder="e.g. SELECT basics, JOIN practice..." value={sessionTitle} onChange={e=>setSessionTitle(e.target.value)} style={{...s.input,width:"100%"}}/>
+                  </div>
+                  <div>
+                    <div style={{fontSize:12,color:"var(--text2)",marginBottom:4}}>Minutes</div>
+                    <input type="number" min="1" placeholder="e.g. 30" value={minutes} onChange={e=>setMinutes(e.target.value)} style={{...s.input,width:110}}/>
+                  </div>
+                  <div>
+                    <div style={{fontSize:12,color:"var(--text2)",marginBottom:4}}>Notes (optional)</div>
+                    <textarea placeholder="What did you cover? Key learnings, commands, concepts..." value={sessionNotes} onChange={e=>setSessionNotes(e.target.value)} style={s.textarea}/>
+                  </div>
+                  <div>
+                    <div style={{fontSize:12,color:"var(--text2)",marginBottom:6}}>Tags</div>
+                    <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                      {FIXED_TAGS.map(t=>(<button key={t} onClick={()=>setNoteTags(prev=>prev.includes(t)?prev.filter(x=>x!==t):[...prev,t])} style={s.pill(noteTags.includes(t))}>{t}</button>))}
+                    </div>
+                  </div>
+                  <button style={{...s.btn(true),background:saved?"#1D9E75":"var(--bg2)",color:saved?"white":"var(--text)",border:`0.5px solid ${saved?"#1D9E75":"var(--border2)"}`,transition:"all 0.2s",alignSelf:"flex-start"}} onClick={()=>logSession(activeHabit.id)}>{saved?"✓ Done!":"Done"}</button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {logView==="history"&&(
+            <div>
+              {recentDays.length===0&&<div style={{fontSize:14,color:"var(--text2)"}}>No sessions yet.</div>}
+              {recentDays.map(date=>{
+                const dl=habitLogs.filter(l=>l.date===date);
+                const mins=dl.reduce((s,l)=>s+l.minutes,0);
+                return(
+                  <div key={date} style={s.dayBlock}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:dl.length?8:0}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
+                        <div style={{width:8,height:8,borderRadius:"50%",background:activeHabit.color}}/>
+                        <span style={{fontSize:13,fontWeight:500}}>{formatDate(date)}</span>
+                      </div>
+                      <span style={{fontSize:12,color:"var(--text2)"}}>{mins} min</span>
+                    </div>
+                    {dl.map((e,i)=>(
+                      <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,padding:"4px 0",borderTop:"0.5px solid var(--border)"}}>
+                        <span style={{fontSize:13,color:"var(--text2)"}}>{e.notes||"Session"} · {e.minutes} min</span>
+                        <button style={s.xBtn} onClick={()=>deleteEntry(activeHabit.id,e.id)}>×</button>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {logView==="notes"&&(
+            <div>
+              {habitNotes.length===0&&<div style={{fontSize:14,color:"var(--text2)",marginBottom:12}}>No notes yet. Log a session to create one.</div>}
+              {habitNotes.slice(0,visibleNotes).map(note=>(
+                <div key={note.id} style={s.noteCard} onClick={()=>setPopupNote(note)}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
+                    <div style={{flex:1}}>
+                      <p style={{fontSize:14,fontWeight:500,color:"var(--text)",marginBottom:2}}>{note.title||"Untitled"}</p>
+                      {note.content&&<p style={{fontSize:12,color:"var(--text2)",lineHeight:1.5,marginBottom:6}}>{note.content.slice(0,80)}{note.content.length>80?"...":""}</p>}
+                    </div>
+                    <span style={{fontSize:11,color:"var(--text2)",flexShrink:0}}>{formatDate(note.created_at?.slice(0,10))}</span>
+                  </div>
+                  <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                    {(note.tags||[]).map(t=><span key={t} style={{fontSize:10,padding:"2px 6px",borderRadius:999,background:"var(--bg2)",color:"var(--text2)"}}>{t}</span>)}
+                  </div>
+                </div>
+              ))}
+              {visibleNotes<habitNotes.length&&(<button style={{...s.btn(false),width:"100%",marginTop:4}} onClick={()=>setVisibleNotes(v=>v+5)}>Load more ({habitNotes.length-visibleNotes} remaining)</button>)}
+            </div>
+          )}
+        </div>
+      );
     }
     ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
   </script>
