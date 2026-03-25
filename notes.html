@@ -14,7 +14,7 @@
     body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:#f9f9f7; color:#1a1a1a; min-height:100vh; }
     input, textarea, button, select { font-family:inherit; }
     :root { --bg:#ffffff; --bg2:#f1f0e8; --border:rgba(0,0,0,0.12); --border2:rgba(0,0,0,0.22); --text:#1a1a1a; --text2:#6b6b68; --radius:8px; --radius-lg:12px; }
-    @media (prefers-color-scheme: dark) { body { background:#1a1a1a; color:#f0f0ee; } :root { --bg:#252523; --bg2:#2e2e2b; --border:rgba(255,255,255,0.12); --border2:rgba(255,255,255,0.22); --text:#f0f0ee; --text2:#9a9a96; } }
+    @media (prefers-color-scheme:dark) { body { background:#1a1a1a; color:#f0f0ee; } :root { --bg:#252523; --bg2:#2e2e2b; --border:rgba(255,255,255,0.12); --border2:rgba(255,255,255,0.22); --text:#f0f0ee; --text2:#9a9a96; } }
     #topnav { position:sticky; top:0; z-index:100; background:var(--bg); border-bottom:0.5px solid var(--border); padding:0 1.25rem; display:flex; align-items:center; justify-content:space-between; height:48px; }
     #topnav .brand { font-size:14px; font-weight:500; color:var(--text); text-decoration:none; }
     #topnav .navlinks { display:flex; gap:4px; }
@@ -58,12 +58,97 @@
     const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkb2JrYmxxY3ZwY2drcGVoYXJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MTM0MjksImV4cCI6MjA4OTk4OTQyOX0.wwysDOb3C3GXcNg6E6Vrh1BgTJXR_A5CaX_S7Quouks";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
     const FIXED_TAGS = ["Personal","Work","Ideas","Later"];
+
     function formatDate(str) { return new Date(str).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}); }
+
     function renderContent(text) {
-      const lines=text.split("\n");const elements=[];let bulletBuffer=[];
-      function flushBullets(){if(bulletBuffer.length){elements.push(<ul key={elements.length}>{bulletBuffer.map((b,i)=><li key={i}>{b}</li>)}</ul>);bulletBuffer=[];}}
-      lines.forEach((line,i)=>{if(line.startsWith("# ")){flushBullets();elements.push(<h1 key={i}>{line.slice(2)}</h1>);}else if(line.startsWith("## ")){flushBullets();elements.push(<h2 key={i}>{line.slice(3)}</h2>);}else if(line.startsWith("- ")||line.startsWith("• ")){bulletBuffer.push(line.slice(2));}else{flushBullets();if(line.trim())elements.push(<p key={i}>{line}</p>);}});
-      flushBullets();return elements;
+      const lines=text.split("\n"); const elements=[]; let bullets=[];
+      function flush(){if(bullets.length){elements.push(<ul key={elements.length}>{bullets.map((b,i)=><li key={i}>{b}</li>)}</ul>);bullets=[];}}
+      lines.forEach((line,i)=>{
+        if(line.startsWith("# ")){flush();elements.push(<h1 key={i}>{line.slice(2)}</h1>);}
+        else if(line.startsWith("## ")){flush();elements.push(<h2 key={i}>{line.slice(3)}</h2>);}
+        else if(line.startsWith("- ")||line.startsWith("• ")){bullets.push(line.slice(2));}
+        else{flush();if(line.trim())elements.push(<p key={i}>{line}</p>);}
+      });
+      flush(); return elements;
+    }
+
+    // — Note Popup —
+    function NotePopup({note, habits, onClose, onEdit, onDelete}) {
+      const habitObj = habits.find(h=>h.id===note.habit_id);
+      const fixedTags = (note.tags||[]).filter(t=>FIXED_TAGS.includes(t));
+      return (
+        <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"var(--bg)",borderRadius:"var(--radius-lg)",border:"0.5px solid var(--border2)",padding:"1.5rem",maxWidth:560,width:"100%",maxHeight:"80vh",overflowY:"auto"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
+              <div style={{flex:1,marginRight:12}}>
+                {note.title&&<p style={{fontSize:17,fontWeight:500,marginBottom:4,color:"var(--text)"}}>{note.title}</p>}
+                <p style={{fontSize:12,color:"var(--text2)"}}>{formatDate(note.created_at)}</p>
+              </div>
+              <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text2)",fontSize:20,lineHeight:1,padding:0,flexShrink:0}}>×</button>
+            </div>
+
+            {note.content&&(
+              <div className="note-content" style={{marginBottom:16,paddingBottom:16,borderBottom:"0.5px solid var(--border)"}}>
+                {renderContent(note.content)}
+              </div>
+            )}
+
+            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
+              {habitObj&&(
+                <span style={{fontSize:11,padding:"3px 10px",borderRadius:999,background:"var(--bg2)",color:"var(--text2)",display:"flex",alignItems:"center",gap:4}}>
+                  <div style={{width:6,height:6,borderRadius:"50%",background:habitObj.color}}/> {habitObj.name}
+                </span>
+              )}
+              {fixedTags.map(t=><span key={t} style={{fontSize:11,padding:"3px 10px",borderRadius:999,background:"var(--bg2)",color:"var(--text2)"}}>{t}</span>)}
+            </div>
+
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={onEdit} style={{fontSize:13,padding:"6px 14px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"transparent",color:"var(--text)",cursor:"pointer",fontWeight:500}}>Edit</button>
+              <button onClick={onDelete} style={{fontSize:13,padding:"6px 14px",borderRadius:"var(--radius)",border:"0.5px solid #E24B4A",background:"transparent",color:"#E24B4A",cursor:"pointer"}}>Delete</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // — Note Edit Modal —
+    function NoteEditModal({note, habits, onSave, onClose}) {
+      const [title,setTitle]=useState(note?.title||"");
+      const [content,setContent]=useState(note?.content||"");
+      const [tags,setTags]=useState((note?.tags||[]).filter(t=>FIXED_TAGS.includes(t)));
+      const [habitId,setHabitId]=useState(note?.habit_id||"");
+      function toggleTag(t){setTags(prev=>prev.includes(t)?prev.filter(x=>x!==t):[...prev,t]);}
+      async function save(){
+        if(!content.trim()&&!title.trim()) return;
+        const habitObj=habits.find(h=>h.id===habitId);
+        const allTags=habitObj?[...new Set([...tags,habitObj.name])]:tags;
+        const{data,error}=await sb.from("notes").update({title:title.trim()||null,content:content.trim(),tags:allTags,habit_id:habitId||null,updated_at:new Date().toISOString()}).eq("id",note.id).select().single();
+        if(!error) onSave(data);
+      }
+      const si={fontSize:14,padding:"8px 10px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg)",color:"var(--text)",outline:"none",width:"100%"};
+      return (
+        <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"var(--bg)",borderRadius:"var(--radius-lg)",border:"0.5px solid var(--border2)",padding:"1.5rem",maxWidth:520,width:"100%",maxHeight:"80vh",overflowY:"auto"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+              <span style={{fontSize:14,fontWeight:500}}>Edit note</span>
+              <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text2)",fontSize:20,lineHeight:1,padding:0}}>×</button>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              <input type="text" placeholder="Title (optional)" value={title} onChange={e=>setTitle(e.target.value)} style={si}/>
+              <textarea placeholder="# Heading&#10;- Bullet&#10;&#10;Or just write..." value={content} onChange={e=>setContent(e.target.value)} style={{...si,resize:"vertical",minHeight:120,fontFamily:"inherit"}}/>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                {FIXED_TAGS.map(t=><button key={t} onClick={()=>toggleTag(t)} style={{fontSize:12,padding:"4px 10px",borderRadius:999,border:`0.5px solid ${tags.includes(t)?"var(--border2)":"var(--border)"}`,background:tags.includes(t)?"var(--bg2)":"transparent",color:tags.includes(t)?"var(--text)":"var(--text2)",cursor:"pointer"}}>{t}</button>)}
+              </div>
+              <select value={habitId} onChange={e=>setHabitId(e.target.value)} style={{...si,width:"auto"}}>
+                <option value="">No habit link</option>
+                {habits.map(h=><option key={h.id} value={h.id}>{h.name}</option>)}
+              </select>
+              <button onClick={save} style={{fontSize:13,padding:"8px 14px",borderRadius:"var(--radius)",border:"none",background:"#1D9E75",color:"white",cursor:"pointer",fontWeight:500,alignSelf:"flex-start"}}>Save</button>
+            </div>
+          </div>
+        </div>
+      );
     }
 
     function Auth() {
@@ -75,34 +160,130 @@
     }
 
     function App() {
-      const [session,setSession]=useState(null);const [notes,setNotes]=useState([]);const [habits,setHabits]=useState([]);const [loading,setLoading]=useState(true);const [filterTag,setFilterTag]=useState("All");const [editing,setEditing]=useState(null);const [content,setContent]=useState("");const [selectedTags,setSelectedTags]=useState([]);const [selectedHabit,setSelectedHabit]=useState("");const [preview,setPreview]=useState(false);const textareaRef=useRef();
+      const [session,setSession]=useState(null);
+      const [notes,setNotes]=useState([]);
+      const [habits,setHabits]=useState([]);
+      const [loading,setLoading]=useState(true);
+      const [filterTag,setFilterTag]=useState("All");
+      const [showForm,setShowForm]=useState(false);
+      const [newTitle,setNewTitle]=useState("");
+      const [newContent,setNewContent]=useState("");
+      const [newTags,setNewTags]=useState([]);
+      const [newHabitId,setNewHabitId]=useState("");
+      const [popupNote,setPopupNote]=useState(null);
+      const [editingNote,setEditingNote]=useState(null);
+      const textareaRef=useRef();
 
       useEffect(()=>{sb.auth.getSession().then(({data:{session}})=>{setSession(session);if(session)loadData(session.user.id);else setLoading(false);});const{data:{subscription}}=sb.auth.onAuthStateChange((_,session)=>{setSession(session);if(session)loadData(session.user.id);else setLoading(false);});return()=>subscription.unsubscribe();},[]);
+
       async function loadData(uid){setLoading(true);const[{data:nData},{data:hData}]=await Promise.all([sb.from("notes").select("*").eq("user_id",uid).order("created_at",{ascending:false}),sb.from("habits").select("*").eq("user_id",uid)]);setNotes(nData||[]);setHabits(hData||[]);setLoading(false);}
-      function openNew(){setEditing("new");setContent("");setSelectedTags([]);setSelectedHabit("");setPreview(false);}
-      function openEdit(note){setEditing(note);setContent(note.content);setSelectedTags(note.tags||[]);setSelectedHabit(note.habit_id||"");setPreview(false);}
-      function closeEditor(){setEditing(null);}
-      function toggleTag(tag){setSelectedTags(prev=>prev.includes(tag)?prev.filter(t=>t!==tag):[...prev,tag]);}
-      async function saveNote(){if(!content.trim())return;const habitObj=habits.find(h=>h.id===selectedHabit);const allTags=habitObj?[...new Set([...selectedTags,habitObj.name])]:selectedTags;if(editing==="new"){const{data,error}=await sb.from("notes").insert({user_id:session.user.id,content:content.trim(),tags:allTags,habit_id:selectedHabit||null,pinned:false}).select().single();if(!error){setNotes([data,...notes]);closeEditor();}}else{const{data,error}=await sb.from("notes").update({content:content.trim(),tags:allTags,habit_id:selectedHabit||null,updated_at:new Date().toISOString()}).eq("id",editing.id).select().single();if(!error){setNotes(notes.map(n=>n.id===editing.id?data:n));closeEditor();}}}
-      async function deleteNote(id){await sb.from("notes").delete().eq("id",id);setNotes(notes.filter(n=>n.id!==id));if(editing&&editing.id===id)closeEditor();}
-      async function togglePin(note){const{data}=await sb.from("notes").update({pinned:!note.pinned}).eq("id",note.id).select().single();if(data)setNotes(notes.map(n=>n.id===note.id?data:n));}
+
+      async function saveNote(){
+        if(!newContent.trim()&&!newTitle.trim()) return;
+        const habitObj=habits.find(h=>h.id===newHabitId);
+        const allTags=habitObj?[...new Set([...newTags,habitObj.name])]:newTags;
+        const{data,error}=await sb.from("notes").insert({user_id:session.user.id,title:newTitle.trim()||null,content:newContent.trim(),tags:allTags,habit_id:newHabitId||null,pinned:false}).select().single();
+        if(!error){setNotes([data,...notes]);setShowForm(false);setNewTitle("");setNewContent("");setNewTags([]);setNewHabitId("");}
+      }
+
+      async function deleteNote(id){await sb.from("notes").delete().eq("id",id);setNotes(notes.filter(n=>n.id!==id));setPopupNote(null);}
+
+      async function saveEditedNote(updated){setNotes(notes.map(n=>n.id===updated.id?updated:n));if(popupNote?.id===updated.id)setPopupNote(updated);setEditingNote(null);}
+
+      async function togglePin(note,e){e.stopPropagation();const{data}=await sb.from("notes").update({pinned:!note.pinned}).eq("id",note.id).select().single();if(data)setNotes(notes.map(n=>n.id===note.id?data:n));}
 
       const allTags=["All",...FIXED_TAGS,...habits.map(h=>h.name)];
       const filtered=filterTag==="All"?notes:notes.filter(n=>(n.tags||[]).includes(filterTag));
-      const pinned=filtered.filter(n=>n.pinned);const unpinned=filtered.filter(n=>!n.pinned);
+      const pinned=filtered.filter(n=>n.pinned);
+      const unpinned=filtered.filter(n=>!n.pinned);
       const habitColorMap={};habits.forEach(h=>{habitColorMap[h.name]=h.color;});
 
-      const s={wrap:{color:"var(--text)",padding:"1.5rem 1rem",maxWidth:640,margin:"0 auto"},row:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"1.25rem"},card:{background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"1rem 1.25rem",marginBottom:"0.75rem"},btn:(a)=>({fontSize:13,padding:"7px 14px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:a?"var(--bg2)":"transparent",color:"var(--text)",cursor:"pointer",fontWeight:500}),tagPill:(a)=>({fontSize:12,padding:"4px 10px",borderRadius:999,border:`0.5px solid ${a?"var(--border2)":"var(--border)"}`,background:a?"var(--bg2)":"transparent",color:a?"var(--text)":"var(--text2)",cursor:"pointer",whiteSpace:"nowrap"}),xBtn:{background:"none",border:"none",cursor:"pointer",color:"var(--text2)",fontSize:18,padding:"0 2px",lineHeight:1},sectionLabel:{fontSize:12,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:10},textarea:{width:"100%",fontSize:14,lineHeight:1.7,padding:"10px 12px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg)",color:"var(--text)",resize:"vertical",minHeight:160,outline:"none",fontFamily:"inherit"}};
+      const s={
+        wrap:{color:"var(--text)",padding:"1.5rem 1rem",maxWidth:640,margin:"0 auto"},
+        row:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"1.25rem"},
+        card:{background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"1rem 1.25rem",marginBottom:"0.75rem",cursor:"pointer"},
+        btn:(a)=>({fontSize:13,padding:"7px 14px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:a?"var(--bg2)":"transparent",color:"var(--text)",cursor:"pointer",fontWeight:500}),
+        tagPill:(a)=>({fontSize:12,padding:"4px 10px",borderRadius:999,border:`0.5px solid ${a?"var(--border2)":"var(--border)"}`,background:a?"var(--bg2)":"transparent",color:a?"var(--text)":"var(--text2)",cursor:"pointer",whiteSpace:"nowrap"}),
+        xBtn:{background:"none",border:"none",cursor:"pointer",color:"var(--text2)",fontSize:18,padding:"0 2px",lineHeight:1},
+        si:{fontSize:14,padding:"8px 10px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg)",color:"var(--text)",outline:"none",width:"100%"},
+      };
 
       if(loading)return<div style={{...s.wrap,paddingTop:"3rem",textAlign:"center",color:"var(--text2)"}}>Loading...</div>;
       if(!session)return<Auth/>;
 
-      return(<div style={s.wrap}><div style={s.row}><div><p style={{fontSize:20,fontWeight:500}}>Notes</p><p style={{fontSize:13,color:"var(--text2)",marginTop:3}}>{notes.length} note{notes.length!==1?"s":""}</p></div><div style={{display:"flex",gap:8}}><button style={s.btn(true)} onClick={openNew}>+ New note</button><button style={s.btn(false)} onClick={()=>sb.auth.signOut()}>Sign out</button></div></div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:"1.25rem"}}>{allTags.map(t=>(<button key={t} style={s.tagPill(filterTag===t)} onClick={()=>setFilterTag(t)}>{t}</button>))}</div>{editing!==null&&(<div style={{...s.card,marginBottom:"1.5rem",border:"0.5px solid var(--border2)"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}><span style={{fontSize:13,fontWeight:500}}>{editing==="new"?"New note":"Edit note"}</span><div style={{display:"flex",gap:8}}><button style={s.btn(preview)} onClick={()=>setPreview(!preview)}>{preview?"Edit":"Preview"}</button><button style={s.xBtn} onClick={closeEditor}>×</button></div></div>{preview?(<div className="note-content" style={{minHeight:120,padding:"10px 12px",background:"var(--bg2)",borderRadius:"var(--radius)",marginBottom:12}}>{content.trim()?renderContent(content):<p style={{color:"var(--text2)"}}>Nothing to preview yet.</p>}</div>):(<textarea ref={textareaRef} autoFocus style={s.textarea} placeholder={"# Heading\n## Subheading\n- Bullet point\n\nOr just write freely..."} value={content} onChange={e=>setContent(e.target.value)}/>)}<div style={{fontSize:12,color:"var(--text2)",marginBottom:8,marginTop:12}}>Tags</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>{FIXED_TAGS.map(t=>(<button key={t} style={s.tagPill(selectedTags.includes(t))} onClick={()=>toggleTag(t)}>{t}</button>))}</div><div style={{fontSize:12,color:"var(--text2)",marginBottom:8}}>Link to habit (optional)</div><select value={selectedHabit} onChange={e=>setSelectedHabit(e.target.value)} style={{fontSize:13,padding:"7px 10px",borderRadius:"var(--radius)",border:"0.5px solid var(--border2)",background:"var(--bg)",color:"var(--text)",marginBottom:14,outline:"none"}}><option value="">None</option>{habits.map(h=><option key={h.id} value={h.id}>{h.name}</option>)}</select><div style={{display:"flex",gap:8}}><button style={{...s.btn(true),background:"#1D9E75",color:"white",border:"none"}} onClick={saveNote}>Save</button>{editing!=="new"&&<button style={{...s.btn(false),color:"#E24B4A",borderColor:"#E24B4A"}} onClick={()=>deleteNote(editing.id)}>Delete</button>}</div></div>)}{pinned.length>0&&(<><div style={s.sectionLabel}>📌 Pinned</div>{pinned.map(note=>(<NoteCard key={note.id} note={note} onEdit={openEdit} onPin={togglePin} habitColorMap={habitColorMap} s={s} renderContent={renderContent}/>))}<div style={{marginBottom:"1.25rem"}}/></>)}{unpinned.length===0&&pinned.length===0&&(<div style={{fontSize:14,color:"var(--text2)"}}>No notes yet. Hit "+ New note" to capture something.</div>)}{unpinned.map(note=>(<NoteCard key={note.id} note={note} onEdit={openEdit} onPin={togglePin} habitColorMap={habitColorMap} s={s} renderContent={renderContent}/>))}</div>);
+      return(
+        <div style={s.wrap}>
+          {popupNote&&<NotePopup note={popupNote} habits={habits} onClose={()=>setPopupNote(null)} onEdit={()=>{setEditingNote(popupNote);setPopupNote(null);}} onDelete={()=>deleteNote(popupNote.id)}/>}
+          {editingNote&&<NoteEditModal note={editingNote} habits={habits} onSave={saveEditedNote} onClose={()=>setEditingNote(null)}/>}
+
+          <div style={s.row}>
+            <div><p style={{fontSize:20,fontWeight:500}}>Notes</p><p style={{fontSize:13,color:"var(--text2)",marginTop:3}}>{notes.length} note{notes.length!==1?"s":""}</p></div>
+            <div style={{display:"flex",gap:8}}>
+              <button style={s.btn(true)} onClick={()=>setShowForm(v=>!v)}>+ New note</button>
+              <button style={s.btn(false)} onClick={()=>sb.auth.signOut()}>Sign out</button>
+            </div>
+          </div>
+
+          {/* Filter */}
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:"1.25rem"}}>
+            {allTags.map(t=>(<button key={t} style={s.tagPill(filterTag===t)} onClick={()=>setFilterTag(t)}>{t}</button>))}
+          </div>
+
+          {/* New note form */}
+          {showForm&&(
+            <div style={{background:"var(--bg)",border:"0.5px solid var(--border2)",borderRadius:"var(--radius-lg)",padding:"1rem 1.25rem",marginBottom:"1.25rem"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <span style={{fontSize:13,fontWeight:500}}>New note</span>
+                <button style={s.xBtn} onClick={()=>setShowForm(false)}>×</button>
+              </div>
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                <input type="text" placeholder="Title (optional)" value={newTitle} onChange={e=>setNewTitle(e.target.value)} style={s.si}/>
+                <textarea ref={textareaRef} autoFocus placeholder={"# Heading\n- Bullet\n\nOr just write freely..."} value={newContent} onChange={e=>setNewContent(e.target.value)} style={{...s.si,resize:"vertical",minHeight:120,fontFamily:"inherit"}}/>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {FIXED_TAGS.map(t=>(<button key={t} style={s.tagPill(newTags.includes(t))} onClick={()=>setNewTags(prev=>prev.includes(t)?prev.filter(x=>x!==t):[...prev,t])}>{t}</button>))}
+                </div>
+                <select value={newHabitId} onChange={e=>setNewHabitId(e.target.value)} style={{...s.si,width:"auto"}}>
+                  <option value="">No habit link</option>
+                  {habits.map(h=><option key={h.id} value={h.id}>{h.name}</option>)}
+                </select>
+                <button onClick={saveNote} style={{fontSize:13,padding:"8px 14px",borderRadius:"var(--radius)",border:"none",background:"#1D9E75",color:"white",cursor:"pointer",fontWeight:500,alignSelf:"flex-start"}}>Save</button>
+              </div>
+            </div>
+          )}
+
+          {/* Pinned */}
+          {pinned.length>0&&(
+            <>
+              <p style={{fontSize:12,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:10}}>📌 Pinned</p>
+              {pinned.map(note=>(<NoteCard key={note.id} note={note} habits={habits} habitColorMap={habitColorMap} onOpen={()=>setPopupNote(note)} onPin={togglePin}/>))}
+              <div style={{marginBottom:"1rem"}}/>
+            </>
+          )}
+
+          {unpinned.length===0&&pinned.length===0&&<div style={{fontSize:14,color:"var(--text2)"}}>No notes yet.</div>}
+          {unpinned.map(note=>(<NoteCard key={note.id} note={note} habits={habits} habitColorMap={habitColorMap} onOpen={()=>setPopupNote(note)} onPin={togglePin}/>))}
+        </div>
+      );
     }
 
-    function NoteCard({note,onEdit,onPin,habitColorMap,s,renderContent}){
-      const preview=note.content.slice(0,200);
-      return(<div style={{...s.card,cursor:"pointer"}} onClick={()=>onEdit(note)}><div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}><div className="note-content" style={{flex:1,marginRight:8}}>{renderContent(preview)}</div><button style={{...s.xBtn,fontSize:16,opacity:note.pinned?1:0.4}} onClick={e=>{e.stopPropagation();onPin(note);}} title={note.pinned?"Unpin":"Pin"}>📌</button></div><div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center",marginTop:8}}>{(note.tags||[]).map(t=>(<span key={t} style={{fontSize:11,padding:"2px 8px",borderRadius:999,background:habitColorMap[t]||"var(--bg2)",color:habitColorMap[t]?"white":"var(--text2)"}}>{t}</span>))}<span style={{fontSize:11,color:"var(--text2)",marginLeft:"auto"}}>{formatDate(note.created_at)}</span></div></div>);
+    function NoteCard({note, habits, habitColorMap, onOpen, onPin}) {
+      const habitObj = habits.find(h=>h.id===note.habit_id);
+      return (
+        <div onClick={onOpen} style={{background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"1rem 1.25rem",marginBottom:"0.75rem",cursor:"pointer"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+            <div style={{flex:1,marginRight:8}}>
+              {note.title&&<p style={{fontSize:14,fontWeight:500,marginBottom:3,color:"var(--text)"}}>{note.title}</p>}
+              {note.content&&<p style={{fontSize:13,color:"var(--text2)",lineHeight:1.5}}>{note.content.slice(0,100)}{note.content.length>100?"...":""}</p>}
+            </div>
+            <button onClick={e=>onPin(note,e)} style={{background:"none",border:"none",cursor:"pointer",fontSize:14,opacity:note.pinned?1:0.3,padding:"0 2px",flexShrink:0}} title={note.pinned?"Unpin":"Pin"}>📌</button>
+          </div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center",marginTop:8}}>
+            {habitObj&&<span style={{fontSize:10,padding:"2px 8px",borderRadius:999,background:habitObj.color,color:"white"}}>{habitObj.name}</span>}
+            {(note.tags||[]).filter(t=>FIXED_TAGS.includes(t)).map(t=>(<span key={t} style={{fontSize:10,padding:"2px 8px",borderRadius:999,background:"var(--bg2)",color:"var(--text2)"}}>{t}</span>))}
+            <span style={{fontSize:11,color:"var(--text2)",marginLeft:"auto"}}>{formatDate(note.created_at)}</span>
+          </div>
+        </div>
+      );
     }
 
     ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
