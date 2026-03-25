@@ -310,6 +310,8 @@
         sb.from("notes").select("*").eq("user_id", session.user.id).eq("habit_id", activeHabit.id).order("created_at", { ascending: false }).then(({ data }) => setHabitNotes(data || []));
       }, [view]);
 
+      // visibleNotes is scoped here, not in OverviewCalendar
+
       async function saveHabitNote() {
         if (!noteContent.trim()) return;
         const allTags = [...new Set([...noteTags, activeHabit.name])];
