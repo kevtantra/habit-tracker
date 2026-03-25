@@ -125,7 +125,6 @@
       const [habits, setHabits] = useState([]);
       const [habitLogs, setHabitLogs] = useState([]);
       const [tasks, setTasks] = useState([]);
-      const [pinnedNotes, setPinnedNotes] = useState([]);
       const [recentNotes, setRecentNotes] = useState([]);
       const [loading, setLoading] = useState(true);
       const [greeting] = useState(GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
@@ -159,7 +158,15 @@
         setLoading(false);
       }
 
-      async function addTask() {
+      const [showNoteForm, setShowNoteForm] = useState(false);
+      const [quickNote, setQuickNote] = useState("");
+      const [quickNoteTags, setQuickNoteTags] = useState([]);
+
+      async function saveQuickNote() {
+        if (!quickNote.trim()) return;
+        const { data, error } = await sb.from("notes").insert({ user_id: session.user.id, content: quickNote.trim(), tags: quickNoteTags, habit_id: null, pinned: false }).select().single();
+        if (!error) { setRecentNotes([data, ...recentNotes].slice(0, 4)); setQuickNote(""); setQuickNoteTags([]); setShowNoteForm(false); }
+      }
         if (!taskTitle.trim()) return;
         const { data, error } = await sb.from("tasks").insert({ user_id: session.user.id, title: taskTitle.trim(), due_date: taskDue || null, color: taskColor, done: false }).select().single();
         if (!error) { setTasks([...tasks, data].sort((a,b) => (a.due_date||"9999") > (b.due_date||"9999") ? 1 : -1)); setTaskTitle(""); setTaskDue(""); setTaskColor("#378ADD"); setShowTaskForm(false); }
@@ -291,7 +298,7 @@
               <span style={s.sectionLabel}>Recent notes</span>
               <a href="/notes.html" style={{ fontSize: 12, color: "var(--text2)", textDecoration: "none" }}>View all →</a>
             </div>
-            {recentNotes.length === 0 && <p style={{ fontSize: 13, color: "var(--text2)" }}>No notes yet.</p>}
+            {recentNotes.length === 0 && !showNoteForm && <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 12 }}>No notes yet.</p>}
             {recentNotes.map(note => (
               <div key={note.id} style={{ padding: "8px 0", borderBottom: "0.5px solid var(--border)" }}>
                 <p style={{ fontSize: 13, color: "var(--text)", whiteSpace: "pre-wrap", lineHeight: 1.5 }}>{note.content.slice(0, 100)}{note.content.length > 100 ? "..." : ""}</p>
@@ -301,6 +308,30 @@
                 </div>
               </div>
             ))}
+
+            {/* Quick note capture */}
+            {showNoteForm ? (
+              <div style={{ marginTop: 12 }}>
+                <textarea
+                  autoFocus
+                  placeholder="Capture a quick note..."
+                  value={quickNote}
+                  onChange={e => setQuickNote(e.target.value)}
+                  style={{ width: "100%", fontSize: 13, padding: "8px 10px", borderRadius: "var(--radius)", border: "0.5px solid var(--border2)", background: "var(--bg)", color: "var(--text)", resize: "none", minHeight: 70, outline: "none", fontFamily: "inherit", marginBottom: 8 }}
+                />
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+                  {["Personal","Work","Ideas","Later"].map(t => (
+                    <button key={t} onClick={() => setQuickNoteTags(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t])} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 999, border: `0.5px solid ${quickNoteTags.includes(t) ? "var(--border2)" : "var(--border)"}`, background: quickNoteTags.includes(t) ? "var(--bg2)" : "transparent", color: quickNoteTags.includes(t) ? "var(--text)" : "var(--text2)", cursor: "pointer" }}>{t}</button>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button style={{ fontSize: 13, padding: "6px 14px", borderRadius: "var(--radius)", border: "none", background: "#1D9E75", color: "white", cursor: "pointer", fontWeight: 500 }} onClick={saveQuickNote}>Save</button>
+                  <button style={s.btn(false)} onClick={() => { setShowNoteForm(false); setQuickNote(""); setQuickNoteTags([]); }}>Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <button style={{ ...s.btn(false), marginTop: 12, fontSize: 12 }} onClick={() => setShowNoteForm(true)}>+ Quick note</button>
+            )}
           </div>
 
           {/* Sign out */}
