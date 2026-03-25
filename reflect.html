@@ -177,7 +177,10 @@
       monthLogs.forEach(l=>{const w=new Date(l.date+"T00:00:00");w.setDate(w.getDate()-w.getDay());const ws=w.toISOString().slice(0,10);weekCounts[ws]=(weekCounts[ws]||0)+1;});
       const mostActiveWeek=Object.entries(weekCounts).sort((a,b)=>b[1]-a[1])[0];
 
-      const s={
+      const weekEnd = today;
+      const weekStartDisplay = new Date(weekStart+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});
+      const weekEndDisplay = new Date(weekEnd+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});
+      const monthStartDisplay = new Date(monthStart+"T00:00:00").toLocaleDateString("en-US",{month:"long"});
         wrap:{color:"var(--text)",padding:"1.5rem 1rem",maxWidth:580,margin:"0 auto"},
         card:{background:"var(--bg)",border:"0.5px solid var(--border)",borderRadius:"var(--radius-lg)",padding:"1rem 1.25rem",marginBottom:"0.75rem"},
         label:{fontSize:12,fontWeight:500,color:"var(--text2)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:10},
@@ -212,8 +215,7 @@
           {tab==="day"&&(
             <>
               <div style={s.card}>
-                <div style={s.label}>Overview</div>
-                <div style={s.row}>
+                <div style={s.label}>Overview — {weekStartDisplay} to {weekEndDisplay} ({daysInWeekSoFar} of 7 days)</div>
                   <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Habits</div><div style={{fontSize:22,fontWeight:500}}>{dayHabits.filter(h=>h.done).length}/{habits.length}</div></div>
                   <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Tasks done</div><div style={{fontSize:22,fontWeight:500}}>{tasksDoneToday}</div></div>
                   <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Notes</div><div style={{fontSize:22,fontWeight:500}}>{notesToday.length}</div></div>
@@ -224,7 +226,7 @@
               <div style={s.card}>
                 <div style={s.label}>Habits</div>
                 {dayHabits.map(h=>(
-                  <div key={h.id} style={s.habitRow}>
+                  <div key={h.id} style={{marginBottom:12}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                       <div style={{display:"flex",alignItems:"center",gap:8}}>
                         <div style={{width:10,height:10,borderRadius:"50%",background:h.color}}/>
@@ -232,8 +234,8 @@
                       </div>
                       <span style={{fontSize:13,color:h.done?"#1D9E75":"var(--text2)",fontWeight:h.done?500:400}}>{h.done?`✓ ${h.mins} min`:"Not logged"}</span>
                     </div>
-                    {h.sessions.filter(s=>s.notes).map((s,i)=>(
-                      <div key={i} style={s.sessionNote}>{s.notes}</div>
+                    {h.sessions.filter(e=>e.notes).map((e,i)=>(
+                      <div key={i} style={{fontSize:12,color:"var(--text2)",padding:"4px 8px",background:"var(--bg2)",borderRadius:"var(--radius)",marginTop:4}}>{e.notes}</div>
                     ))}
                   </div>
                 ))}
@@ -259,7 +261,6 @@
               <div style={s.card}>
                 <div style={s.label}>Overview</div>
                 <div style={s.row}>
-                  <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Sessions</div><div style={{fontSize:22,fontWeight:500}}>{weekLogs.length}</div></div>
                   <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Tasks in</div><div style={{fontSize:22,fontWeight:500}}>{tasksCreatedWeek}</div></div>
                   <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Tasks done</div><div style={{fontSize:22,fontWeight:500}}>{tasksDoneWeek}</div></div>
                   <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Notes</div><div style={{fontSize:22,fontWeight:500}}>{notesWeek.length}</div></div>
@@ -304,10 +305,7 @@
           {/* MONTH */}
           {tab==="month"&&(
             <>
-              <div style={s.card}>
-                <div style={s.label}>Overview</div>
-                <div style={s.row}>
-                  <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Study mins</div><div style={{fontSize:22,fontWeight:500}}>{totalStudyMins}</div></div>
+                  <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Sessions</div><div style={{fontSize:22,fontWeight:500}}>{weekLogs.length}</div></div><div style={{fontSize:22,fontWeight:500}}>{totalStudyMins}</div></div>
                   <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Tasks in</div><div style={{fontSize:22,fontWeight:500}}>{tasksCreatedMonth}</div></div>
                   <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Tasks done</div><div style={{fontSize:22,fontWeight:500}}>{tasksDoneMonth}</div></div>
                   <div style={s.stat}><div style={{fontSize:11,color:"var(--text2)",marginBottom:2}}>Notes</div><div style={{fontSize:22,fontWeight:500}}>{notesMonth.length}</div></div>
