@@ -172,6 +172,9 @@
                   <span style={{fontSize:12,color:"var(--text2)"}}>{h.name}</span>
                 </div>
               ))}
+              {visibleNotes < habitNotes.length && (
+                <button style={{...s.btn(false), width:"100%", marginTop:4}} onClick={()=>setVisibleNotes(v=>v+5)}>Load more ({habitNotes.length - visibleNotes} remaining)</button>
+              )}
             </div>
           )}
         </div>
@@ -297,11 +300,13 @@
       const [noteContent, setNoteContent] = useState("");
       const [noteTags, setNoteTags] = useState([]);
       const [noteSaved, setNoteSaved] = useState(false);
+      const [visibleNotes, setVisibleNotes] = useState(5);
 
       const FIXED_TAGS = ["Personal", "Work", "Ideas", "Later"];
 
       useEffect(() => {
         if (!activeHabit) return;
+        setVisibleNotes(5);
         sb.from("notes").select("*").eq("user_id", session.user.id).eq("habit_id", activeHabit.id).order("created_at", { ascending: false }).then(({ data }) => setHabitNotes(data || []));
       }, [view]);
 
@@ -464,7 +469,7 @@
                 </div>
               </div>
               {habitNotes.length===0&&<div style={{fontSize:14,color:"var(--text2)"}}>No notes yet for this habit.</div>}
-              {habitNotes.map(note=>(
+              {habitNotes.slice(0, visibleNotes).map(note=>(
                 <div key={note.id} style={s.card}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
                     <p style={{fontSize:14,lineHeight:1.6,color:"var(--text2)",flex:1,whiteSpace:"pre-wrap"}}>{note.content}</p>
