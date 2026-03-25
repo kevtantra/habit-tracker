@@ -196,9 +196,10 @@
         <div style={s.wrap}>
 
           {/* Greeting */}
-          <div style={{ marginBottom: "2rem" }}>
-            <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 6 }}>{dateStr} · {timeStr}</p>
-            <p style={{ fontSize: 18, fontWeight: 400, lineHeight: 1.5, color: "var(--text)", fontStyle: "italic" }}>{greeting}</p>
+          <div style={{ textAlign: "center", marginBottom: "2.5rem", padding: "2rem 0 1rem" }}>
+            <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 4, letterSpacing: "0.03em" }}>{dateStr}</p>
+            <p style={{ fontSize: 32, fontWeight: 300, color: "var(--text)", letterSpacing: "-0.5px", marginBottom: 4 }}>{timeStr}</p>
+            <p style={{ fontSize: 15, fontWeight: 400, lineHeight: 1.6, color: "var(--text2)", fontStyle: "italic", maxWidth: 420, margin: "0 auto" }}>{greeting}</p>
           </div>
 
           {/* Top row — Habits + Tasks */}
