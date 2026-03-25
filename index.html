@@ -189,7 +189,8 @@
       const pinnedCount = notes.filter(n=>n.pinned).length;
 
       // week day count (Mon–Sun)
-      const daysInWeekSoFar = Math.min(7, Math.floor((new Date(today+"T00:00:00") - new Date(weekStart+"T00:00:00"))/86400000)+1);
+      const daysInWeekSoFar = 7;
+      const daysInMonthSoFar = daysInMonth;
       const daysInMonthSoFar = new Date().getDate();
 
       const s = {
