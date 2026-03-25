@@ -169,7 +169,7 @@
       });
       const weekLogs = allLogs.filter(l=>inRange(l.date,weekStart));
       const tasksCreatedWeek = tasks.filter(t=>inRange(t.created_at?.slice(0,10),weekStart)).length;
-      const tasksDoneWeek = tasks.filter(t=>t.done&&inRange(t.updated_at?.slice(0,10),weekStart)).length;
+      const tasksDoneWeek = tasks.filter(t => t.done && inRange(t.updated_at?.slice(0,10)||t.created_at?.slice(0,10), weekStart)).length;
       const notesWeek = notes.filter(n=>inRange(n.created_at?.slice(0,10),weekStart));
       const dayCounts = {};
       weekLogs.forEach(l=>{ dayCounts[l.date]=(dayCounts[l.date]||0)+1; });
@@ -184,7 +184,7 @@
       });
       const monthLogs = allLogs.filter(l=>inRange(l.date,monthStart));
       const tasksCreatedMonth = tasks.filter(t=>inRange(t.created_at?.slice(0,10),monthStart)).length;
-      const tasksDoneMonth = tasks.filter(t=>t.done&&inRange(t.updated_at?.slice(0,10),monthStart)).length;
+      const tasksDoneMonth = tasks.filter(t => t.done && inRange(t.updated_at?.slice(0,10)||t.created_at?.slice(0,10), monthStart)).length;
       const notesMonth = notes.filter(n=>inRange(n.created_at?.slice(0,10),monthStart));
       const totalStudyMins = monthLogs.reduce((s,l)=>s+l.minutes,0);
       const weekCounts = {};
@@ -260,7 +260,7 @@
             <>
               <div style={card}>
                 <div style={label}>Overview</div>
-                <div style={sublabel}>{weekStartLabel} – {weekEndLabel} · {daysInWeekSoFar} of 7 days elapsed</div>
+                <div style={sublabel}>{weekStartLabel} – {weekEndLabel} · full week (7 days)</div>
                 <div style={statRow}>
                   <StatCard label="Sessions" value={weekLogs.length}/>
                   <StatCard label="Tasks in" value={tasksCreatedWeek}/>
@@ -301,7 +301,7 @@
             <>
               <div style={card}>
                 <div style={label}>Overview</div>
-                <div style={sublabel}>{monthName} · {daysInMonthSoFar} of {daysInMonth} days elapsed</div>
+                <div style={sublabel}>{monthName} · {daysInMonth} days total</div>
                 <div style={statRow}>
                   <StatCard label="Study mins" value={totalStudyMins}/>
                   <StatCard label="Tasks in" value={tasksCreatedMonth}/>
