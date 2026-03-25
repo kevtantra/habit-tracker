@@ -229,7 +229,7 @@
             <div style={s.card}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <span style={s.sectionLabel}>Tasks</span>
-                <button style={s.btn(false)} onClick={() => setShowTaskForm(!showTaskForm)}>+ Add</button>
+                <button style={s.btn(false)} onClick={(e) => { e.stopPropagation(); setShowTaskForm(v => !v); }}>+ Add</button>
               </div>
 
               {showTaskForm && (
