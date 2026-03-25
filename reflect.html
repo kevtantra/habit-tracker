@@ -158,7 +158,7 @@
         const todayLogs = (habitLogs[h.id]||[]).filter(l=>l.date===today);
         return { ...h, done: todayLogs.length>0, mins: todayLogs.reduce((s,l)=>s+l.minutes,0), sessions: todayLogs };
       });
-      const tasksDoneToday = tasks.filter(t=>t.done&&t.updated_at?.slice(0,10)===today).length;
+      const tasksDoneToday = tasks.filter(t => t.done && (t.updated_at?.slice(0,10)===today || t.created_at?.slice(0,10)===today)).length;
       const tasksPending = tasks.filter(t=>!t.done).length;
       const notesToday = notes.filter(n=>n.created_at?.slice(0,10)===today);
 
