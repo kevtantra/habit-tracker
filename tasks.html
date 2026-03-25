@@ -73,7 +73,12 @@
       function openEdit(task){setEditing(task);setTitle(task.title);setDue(task.due_date||"");setColor(task.color);setShowForm(true);}
       function closeForm(){setShowForm(false);setEditing(null);}
       async function saveTask(){if(!title.trim())return;if(editing){const{data}=await sb.from("tasks").update({title:title.trim(),due_date:due||null,color}).eq("id",editing.id).select().single();if(data)setTasks(tasks.map(t=>t.id===editing.id?data:t));}else{const{data}=await sb.from("tasks").insert({user_id:session.user.id,title:title.trim(),due_date:due||null,color,done:false}).select().single();if(data)setTasks([data,...tasks]);}closeForm();}
-      async function toggleDone(task){const{data}=await sb.from("tasks").update({done:!task.done}).eq("id",task.id).select().single();if(data)setTasks(tasks.map(t=>t.id===task.id?data:t));}
+      async function toggleDone(task) {
+        const now = new Date().toISOString();
+        const updates = { done: !task.done, updated_at: now };
+        const { data } = await sb.from("tasks").update(updates).eq("id", task.id).select().single();
+        if(data) setTasks(tasks.map(t => t.id===task.id ? data : t));
+      }
       async function deleteTask(id){await sb.from("tasks").delete().eq("id",id);setTasks(tasks.filter(t=>t.id!==id));if(editing&&editing.id===id)closeForm();}
 
       const filtered=tasks.filter(t=>filter==="all"?true:filter==="pending"?!t.done:t.done);
