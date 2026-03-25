@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tasks — popnoods</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f9f9f7; color: #1a1a1a; min-height: 100vh; }
+    input, textarea, button, select { font-family: inherit; }
+    :root {
+      --bg: #ffffff; --bg2: #f1f0e8; --border: rgba(0,0,0,0.12);
+      --border2: rgba(0,0,0,0.22); --text: #1a1a1a; --text2: #6b6b68;
+      --radius: 8px; --radius-lg: 12px;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { background: #1a1a1a; color: #f0f0ee; }
+      :root {
+        --bg: #252523; --bg2: #2e2e2b; --border: rgba(255,255,255,0.12);
+        --border2: rgba(255,255,255,0.22); --text: #f0f0ee; --text2: #9a9a96;
+      }
+    }
+    #topnav { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 0.5px solid var(--border); padding: 0 1.25rem; display: flex; align-items: center; justify-content: space-between; height: 48px; }
+    #topnav .brand { font-size: 14px; font-weight: 500; color: var(--text); text-decoration: none; }
+    #topnav .navlinks { display: flex; gap: 4px; }
+    #topnav .navlinks a { font-size: 13px; color: var(--text2); text-decoration: none; padding: 5px 10px; border-radius: var(--radius); }
+    #topnav .navlinks a:hover { background: var(--bg2); color: var(--text); }
+    #topnav .navlinks a.active { color: var(--text); font-weight: 500; }
+  </style>
+</head>
+<body>
+  <nav id="topnav">
+    <a class="brand" href="/">popnoods</a>
+    <div class="navlinks">
+      <a href="/">Space</a>
+      <a href="/habits.html">Habits</a>
+      <a href="/tasks.html" class="active">Tasks</a>
+      <a href="/notes.html">Notes</a>
+    </div>
+  </nav>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    const SUPABASE_URL = "https://tdobkblqcvpcgkpehare.supabase.co";
+    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkb2JrYmxxY3ZwY2drcGVoYXJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MTM0MjksImV4cCI6MjA4OTk4OTQyOX0.wwysDOb3C3GXcNg6E6Vrh1BgTJXR_A5CaX_S7Quouks";
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    function getTodayStr() { return new Date().toISOString().slice(0,10); }
+
+    function urgencyColor(task) {
+      if (task.done) return task.color;
+      if (!task.due_date) return task.color;
+      const today = getTodayStr();
+      if (task.due_date < today) return "#E24B4A";
+      if (task.due_date === today) return "#BA7517";
+      return task.color;
+    }
+
+    function formatDue(str) {
+      if (!str) return null;
+      const today = getTodayStr();
+      if (str < today) return { label: "Overdue", color: "#E24B4A" };
+      if (str === today) return { label: "Due today", color: "#BA7517" };
+      const d = new Date(str + "T00:00:00");
+      return { label: "Due " + d.toLocaleDateString("en-US", { month: "short", day: "numeric" }), color: null };
+    }
+
+    // — Auth —
+    function Auth() {
+      const [email, setEmail] = useState(""); const [pw, setPw] = useState("");
+      const [mode, setMode] = useState("login"); const [msg, setMsg] = useState("");
+      const [loading, setLoading] = useState(false);
+      async function handleSubmit() {
+        setLoading(true); setMsg("");
+        if (mode === "login") { const { error } = await sb.auth.signInWithPassword({ email, password: pw }); if (error) setMsg(error.message); }
+        else { const { error } = await sb.auth.signUp({ email, password: pw }); if (error) setMsg(error.message); else setMsg("Check your email to confirm."); }
+        setLoading(false);
+      }
+      async function handleGoogle() { await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.href } }); }
+      const s = {
+        wrap: { minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 },
+        card: { background: "var(--bg)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "2rem", width: "100%", maxWidth: 360 },
+        input: { width: "100%", fontSize: 14, padding: "9px 12px", borderRadius: "var(--radius)", border: "0.5px solid var(--border2)", background: "var(--bg)", color: "var(--text)", marginBottom: 12, outline: "none" },
+        btn: (p) => ({ width: "100%", fontSize: 14, padding: 10, borderRadius: "var(--radius)", border: p ? "none" : "0.5px solid var(--border2)", background: p ? "#1D9E75" : "transparent", color: p ? "white" : "var(--text)", cursor: "pointer", fontWeight: 500, marginBottom: 10 }),
+      };
+      return (
+        <div style={s.wrap}>
+          <div style={s.card}>
+            <p style={{ fontSize: 20, fontWeight: 500, marginBottom: 6 }}>popnoods</p>
+            <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 24 }}>{mode === "login" ? "Sign in" : "Create account"}</p>
+            <input style={s.input} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />
+            <input style={s.input} type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="Password" onKeyDown={e => e.key === "Enter" && handleSubmit()} />
+            <button style={s.btn(true)} onClick={handleSubmit} disabled={loading}>{loading ? "..." : mode === "login" ? "Sign in" : "Sign up"}</button>
+            <button style={s.btn(false)} onClick={handleGoogle}>Continue with Google</button>
+            {msg && <p style={{ fontSize: 13, color: "#D85A30", marginTop: 8 }}>{msg}</p>}
+            <p style={{ fontSize: 13, color: "var(--text2)", textAlign: "center", marginTop: 12, cursor: "pointer" }} onClick={() => { setMode(mode === "login" ? "signup" : "login"); setMsg(""); }}>
+              {mode === "login" ? "No account? Sign up" : "Have an account? Sign in"}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    // — Main —
+    function App() {
+      const [session, setSession] = useState(null);
+      const [tasks, setTasks] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [filter, setFilter] = useState("pending");
+      const [sortBy, setSortBy] = useState("due");
+      const [showForm, setShowForm] = useState(false);
+      const [editing, setEditing] = useState(null);
+      const [title, setTitle] = useState("");
+      const [due, setDue] = useState("");
+      const [color, setColor] = useState("#378ADD");
+
+      useEffect(() => {
+        sb.auth.getSession().then(({ data: { session } }) => { setSession(session); if (session) loadTasks(session.user.id); else setLoading(false); });
+        const { data: { subscription } } = sb.auth.onAuthStateChange((_, session) => { setSession(session); if (session) loadTasks(session.user.id); else setLoading(false); });
+        return () => subscription.unsubscribe();
+      }, []);
+
+      async function loadTasks(uid) {
+        setLoading(true);
+        const { data } = await sb.from("tasks").select("*").eq("user_id", uid).order("created_at", { ascending: false });
+        setTasks(data || []);
+        setLoading(false);
+      }
+
+      function openNew() { setEditing(null); setTitle(""); setDue(""); setColor("#378ADD"); setShowForm(true); }
+      function openEdit(task) { setEditing(task); setTitle(task.title); setDue(task.due_date || ""); setColor(task.color); setShowForm(true); }
+      function closeForm() { setShowForm(false); setEditing(null); }
+
+      async function saveTask() {
+        if (!title.trim()) return;
+        if (editing) {
+          const { data } = await sb.from("tasks").update({ title: title.trim(), due_date: due || null, color }).eq("id", editing.id).select().single();
+          if (data) setTasks(tasks.map(t => t.id === editing.id ? data : t));
+        } else {
+          const { data } = await sb.from("tasks").insert({ user_id: session.user.id, title: title.trim(), due_date: due || null, color, done: false }).select().single();
+          if (data) setTasks([data, ...tasks]);
+        }
+        closeForm();
+      }
+
+      async function toggleDone(task) {
+        const { data } = await sb.from("tasks").update({ done: !task.done }).eq("id", task.id).select().single();
+        if (data) setTasks(tasks.map(t => t.id === task.id ? data : t));
+      }
+
+      async function deleteTask(id) {
+        await sb.from("tasks").delete().eq("id", id);
+        setTasks(tasks.filter(t => t.id !== id));
+        if (editing && editing.id === id) closeForm();
+      }
+
+      const filtered = tasks.filter(t => filter === "all" ? true : filter === "pending" ? !t.done : t.done);
+      const sorted = [...filtered].sort((a, b) => {
+        if (sortBy === "due") return (a.due_date || "9999") > (b.due_date || "9999") ? 1 : -1;
+        if (sortBy === "color") return a.color > b.color ? 1 : -1;
+        return 0;
+      });
+
+      const pendingCount = tasks.filter(t => !t.done).length;
+      const doneCount = tasks.filter(t => t.done).length;
+
+      const s = {
+        wrap: { color: "var(--text)", padding: "1.5rem 1rem", maxWidth: 580, margin: "0 auto" },
+        row: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" },
+        card: { background: "var(--bg)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "1rem 1.25rem", marginBottom: "0.75rem" },
+        btn: (a) => ({ fontSize: 13, padding: "6px 12px", borderRadius: "var(--radius)", border: "0.5px solid var(--border2)", background: a ? "var(--bg2)" : "transparent", color: "var(--text)", cursor: "pointer", fontWeight: a ? 500 : 400 }),
+        pill: (a) => ({ fontSize: 12, padding: "4px 12px", borderRadius: 999, border: `0.5px solid ${a ? "var(--border2)" : "var(--border)"}`, background: a ? "var(--bg2)" : "transparent", color: a ? "var(--text)" : "var(--text2)", cursor: "pointer", fontWeight: a ? 500 : 400 }),
+        input: { fontSize: 14, padding: "8px 10px", borderRadius: "var(--radius)", border: "0.5px solid var(--border2)", background: "var(--bg)", color: "var(--text)", outline: "none" },
+        xBtn: { background: "none", border: "none", cursor: "pointer", color: "var(--text2)", fontSize: 18, padding: "0 2px", lineHeight: 1 },
+      };
+
+      if (loading) return <div style={{ ...s.wrap, paddingTop: "3rem", textAlign: "center", color: "var(--text2)" }}>Loading...</div>;
+      if (!session) return <Auth />;
+
+      return (
+        <div style={s.wrap}>
+          <div style={s.row}>
+            <div>
+              <p style={{ fontSize: 20, fontWeight: 500 }}>Tasks</p>
+              <p style={{ fontSize: 13, color: "var(--text2)", marginTop: 3 }}>{pendingCount} pending · {doneCount} done</p>
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button style={s.btn(true)} onClick={openNew}>+ Add task</button>
+              <button style={s.btn(false)} onClick={() => sb.auth.signOut()}>Sign out</button>
+            </div>
+          </div>
+
+          {/* Filter + sort */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: 8 }}>
+            <div style={{ display: "flex", gap: 6 }}>
+              {[["pending","Pending"],["done","Done"],["all","All"]].map(([v,l]) => (
+                <button key={v} style={s.pill(filter === v)} onClick={() => setFilter(v)}>{l}</button>
+              ))}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 12, color: "var(--text2)" }}>Sort:</span>
+              {[["due","Due date"],["color","Color"]].map(([v,l]) => (
+                <button key={v} style={s.pill(sortBy === v)} onClick={() => setSortBy(v)}>{l}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Task form */}
+          {showForm && (
+            <div style={{ ...s.card, border: "0.5px solid var(--border2)", marginBottom: "1.25rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <span style={{ fontSize: 13, fontWeight: 500 }}>{editing ? "Edit task" : "New task"}</span>
+                <button style={s.xBtn} onClick={closeForm}>×</button>
+              </div>
+              <input type="text" placeholder="Task title..." value={title} onChange={e => setTitle(e.target.value)} onKeyDown={e => e.key === "Enter" && saveTask()} style={{ ...s.input, width: "100%", marginBottom: 10 }} />
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
+                <input type="date" value={due} onChange={e => setDue(e.target.value)} style={{ ...s.input, flex: 1 }} />
+                <input type="color" value={color} onChange={e => setColor(e.target.value)} style={{ width: 36, height: 36, borderRadius: "var(--radius)", border: "0.5px solid var(--border2)", cursor: "pointer", padding: 2, background: "none" }} />
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button style={{ ...s.btn(true), background: "#1D9E75", color: "white", border: "none" }} onClick={saveTask}>Save</button>
+                {editing && <button style={{ ...s.btn(false), color: "#E24B4A", borderColor: "#E24B4A" }} onClick={() => deleteTask(editing.id)}>Delete</button>}
+              </div>
+            </div>
+          )}
+
+          {/* Task list */}
+          {sorted.length === 0 && (
+            <p style={{ fontSize: 14, color: "var(--text2)" }}>{filter === "pending" ? "No pending tasks. You're clear." : filter === "done" ? "No completed tasks yet." : "No tasks yet."}</p>
+          )}
+
+          {sorted.map(task => {
+            const uc = urgencyColor(task);
+            const due = formatDue(task.due_date);
+            return (
+              <div key={task.id} style={{ ...s.card, display: "flex", alignItems: "center", gap: 12, opacity: task.done ? 0.6 : 1 }}>
+                <button onClick={() => toggleDone(task)} style={{ width: 22, height: 22, borderRadius: "50%", border: `2px solid ${uc}`, background: task.done ? uc : "transparent", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {task.done && <svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                </button>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text)", textDecoration: task.done ? "line-through" : "none" }}>{task.title}</p>
+                  {due && <p style={{ fontSize: 12, color: due.color || "var(--text2)", marginTop: 2 }}>{due.label}</p>}
+                </div>
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: uc, flexShrink: 0 }} />
+                <button style={s.xBtn} onClick={() => openEdit(task)}>✏️</button>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+  </script>
+</body>
+</html>
