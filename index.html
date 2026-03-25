@@ -44,7 +44,7 @@
   </nav>
   <div id="root"></div>
   <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
+    const { useState, useEffect } = React;
     const SUPABASE_URL = "https://tdobkblqcvpcgkpehare.supabase.co";
     const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkb2JrYmxxY3ZwY2drcGVoYXJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MTM0MjksImV4cCI6MjA4OTk4OTQyOX0.wwysDOb3C3GXcNg6E6Vrh1BgTJXR_A5CaX_S7Quouks";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -65,7 +65,7 @@
       return now;
     }
 
-    function taskUrgencyColor(task) {
+    function urgencyColor(task) {
       if (task.done) return task.color;
       if (!task.due_date) return task.color;
       const today = getTodayStr();
@@ -83,10 +83,11 @@
       return "Due " + d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
     }
 
-    // — Auth —
     function Auth() {
-      const [email, setEmail] = useState(""); const [pw, setPw] = useState("");
-      const [mode, setMode] = useState("login"); const [msg, setMsg] = useState("");
+      const [email, setEmail] = useState("");
+      const [pw, setPw] = useState("");
+      const [mode, setMode] = useState("login");
+      const [msg, setMsg] = useState("");
       const [loading, setLoading] = useState(false);
       async function handleSubmit() {
         setLoading(true); setMsg("");
@@ -94,37 +95,32 @@
         else { const { error } = await sb.auth.signUp({ email, password: pw }); if (error) setMsg(error.message); else setMsg("Check your email to confirm."); }
         setLoading(false);
       }
-      async function handleGoogle() { await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.href } }); }
-      const s = {
-        wrap: { minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 },
-        card: { background: "var(--bg)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "2rem", width: "100%", maxWidth: 360 },
-        input: { width: "100%", fontSize: 14, padding: "9px 12px", borderRadius: "var(--radius)", border: "0.5px solid var(--border2)", background: "var(--bg)", color: "var(--text)", marginBottom: 12, outline: "none" },
-        btn: (p) => ({ width: "100%", fontSize: 14, padding: 10, borderRadius: "var(--radius)", border: p ? "none" : "0.5px solid var(--border2)", background: p ? "#1D9E75" : "transparent", color: p ? "white" : "var(--text)", cursor: "pointer", fontWeight: 500, marginBottom: 10 }),
-      };
+      const si = { width:"100%", fontSize:14, padding:"9px 12px", borderRadius:"var(--radius)", border:"0.5px solid var(--border2)", background:"var(--bg)", color:"var(--text)", marginBottom:12, outline:"none" };
+      const sb2 = (p) => ({ width:"100%", fontSize:14, padding:10, borderRadius:"var(--radius)", border:p?"none":"0.5px solid var(--border2)", background:p?"#1D9E75":"transparent", color:p?"white":"var(--text)", cursor:"pointer", fontWeight:500, marginBottom:10 });
       return (
-        <div style={s.wrap}>
-          <div style={s.card}>
-            <p style={{ fontSize: 20, fontWeight: 500, marginBottom: 6 }}>popnoods</p>
-            <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 24 }}>{mode === "login" ? "Sign in" : "Create account"}</p>
-            <input style={s.input} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />
-            <input style={s.input} type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="Password" onKeyDown={e => e.key === "Enter" && handleSubmit()} />
-            <button style={s.btn(true)} onClick={handleSubmit} disabled={loading}>{loading ? "..." : mode === "login" ? "Sign in" : "Sign up"}</button>
-            <button style={s.btn(false)} onClick={handleGoogle}>Continue with Google</button>
-            {msg && <p style={{ fontSize: 13, color: "#D85A30", marginTop: 8 }}>{msg}</p>}
-            <p style={{ fontSize: 13, color: "var(--text2)", textAlign: "center", marginTop: 12, cursor: "pointer" }} onClick={() => { setMode(mode === "login" ? "signup" : "login"); setMsg(""); }}>
-              {mode === "login" ? "No account? Sign up" : "Have an account? Sign in"}
+        <div style={{ minHeight:"80vh", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
+          <div style={{ background:"var(--bg)", border:"0.5px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"2rem", width:"100%", maxWidth:360 }}>
+            <p style={{ fontSize:20, fontWeight:500, marginBottom:6 }}>popnoods</p>
+            <p style={{ fontSize:13, color:"var(--text2)", marginBottom:24 }}>{mode==="login"?"Sign in":"Create account"}</p>
+            <input style={si} type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email"/>
+            <input style={si} type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="Password" onKeyDown={e=>e.key==="Enter"&&handleSubmit()}/>
+            <button style={sb2(true)} onClick={handleSubmit} disabled={loading}>{loading?"...":mode==="login"?"Sign in":"Sign up"}</button>
+            <button style={sb2(false)} onClick={()=>sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:window.location.href}})}>Continue with Google</button>
+            {msg&&<p style={{fontSize:13,color:"#D85A30",marginTop:8}}>{msg}</p>}
+            <p style={{fontSize:13,color:"var(--text2)",textAlign:"center",marginTop:12,cursor:"pointer"}} onClick={()=>{setMode(mode==="login"?"signup":"login");setMsg("");}}>
+              {mode==="login"?"No account? Sign up":"Have an account? Sign in"}
             </p>
           </div>
         </div>
       );
     }
 
-    // — Main —
     function App() {
       const [session, setSession] = useState(null);
       const [habits, setHabits] = useState([]);
       const [habitLogs, setHabitLogs] = useState([]);
       const [tasks, setTasks] = useState([]);
+      const [pinnedNotes, setPinnedNotes] = useState([]);
       const [recentNotes, setRecentNotes] = useState([]);
       const [loading, setLoading] = useState(true);
       const [greeting] = useState(GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
@@ -136,9 +132,20 @@
       const [taskDue, setTaskDue] = useState("");
       const [taskColor, setTaskColor] = useState("#378ADD");
 
+      // note form
+      const [showNoteForm, setShowNoteForm] = useState(false);
+      const [quickNote, setQuickNote] = useState("");
+      const [quickNoteTags, setQuickNoteTags] = useState([]);
+
       useEffect(() => {
-        sb.auth.getSession().then(({ data: { session } }) => { setSession(session); if (session) loadData(session.user.id); else setLoading(false); });
-        const { data: { subscription } } = sb.auth.onAuthStateChange((_, session) => { setSession(session); if (session) loadData(session.user.id); else setLoading(false); });
+        sb.auth.getSession().then(({ data: { session } }) => {
+          setSession(session);
+          if (session) loadData(session.user.id); else setLoading(false);
+        });
+        const { data: { subscription } } = sb.auth.onAuthStateChange((_, session) => {
+          setSession(session);
+          if (session) loadData(session.user.id); else setLoading(false);
+        });
         return () => subscription.unsubscribe();
       }, []);
 
@@ -158,18 +165,13 @@
         setLoading(false);
       }
 
-      const [showNoteForm, setShowNoteForm] = useState(false);
-      const [quickNote, setQuickNote] = useState("");
-      const [quickNoteTags, setQuickNoteTags] = useState([]);
-
-      async function saveQuickNote() {
-        if (!quickNote.trim()) return;
-        const { data, error } = await sb.from("notes").insert({ user_id: session.user.id, content: quickNote.trim(), tags: quickNoteTags, habit_id: null, pinned: false }).select().single();
-        if (!error) { setRecentNotes([data, ...recentNotes].slice(0, 4)); setQuickNote(""); setQuickNoteTags([]); setShowNoteForm(false); }
-      }
+      async function addTask() {
         if (!taskTitle.trim()) return;
         const { data, error } = await sb.from("tasks").insert({ user_id: session.user.id, title: taskTitle.trim(), due_date: taskDue || null, color: taskColor, done: false }).select().single();
-        if (!error) { setTasks([...tasks, data].sort((a,b) => (a.due_date||"9999") > (b.due_date||"9999") ? 1 : -1)); setTaskTitle(""); setTaskDue(""); setTaskColor("#378ADD"); setShowTaskForm(false); }
+        if (!error) {
+          setTasks([...tasks, data].sort((a,b) => (a.due_date||"9999") > (b.due_date||"9999") ? 1 : -1));
+          setTaskTitle(""); setTaskDue(""); setTaskColor("#378ADD"); setShowTaskForm(false);
+        }
       }
 
       async function completeTask(id) {
@@ -182,31 +184,39 @@
         if (data) { setPinnedNotes(pinnedNotes.filter(n => n.id !== note.id)); setRecentNotes([data, ...recentNotes].slice(0, 4)); }
       }
 
+      async function saveQuickNote() {
+        if (!quickNote.trim()) return;
+        const { data, error } = await sb.from("notes").insert({ user_id: session.user.id, content: quickNote.trim(), tags: quickNoteTags, habit_id: null, pinned: false }).select().single();
+        if (!error) { setRecentNotes([data, ...recentNotes].slice(0, 4)); setQuickNote(""); setQuickNoteTags([]); setShowNoteForm(false); }
+      }
+
       const today = getTodayStr();
       const loggedToday = new Set(habitLogs.filter(l => l.date === today).map(l => l.habit_id));
-      const dateStr = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-      const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      const dateStr = now.toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" });
+      const timeStr = now.toLocaleTimeString("en-US", { hour:"2-digit", minute:"2-digit", second:"2-digit" });
 
       const s = {
-        wrap: { color: "var(--text)", padding: "1.5rem 1rem", maxWidth: 680, margin: "0 auto" },
-        card: { background: "var(--bg)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "1rem 1.25rem", marginBottom: "0.75rem" },
-        sectionLabel: { fontSize: 12, fontWeight: 500, color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 10 },
-        btn: (a) => ({ fontSize: 13, padding: "6px 12px", borderRadius: "var(--radius)", border: "0.5px solid var(--border2)", background: a ? "var(--bg2)" : "transparent", color: "var(--text)", cursor: "pointer", fontWeight: 500 }),
-        xBtn: { background: "none", border: "none", cursor: "pointer", color: "var(--text2)", fontSize: 18, padding: "0 2px", lineHeight: 1 },
-        grid2: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "0.75rem", marginBottom: "0.75rem" },
+        wrap: { color:"var(--text)", padding:"1.5rem 1rem", maxWidth:680, margin:"0 auto" },
+        card: { background:"var(--bg)", border:"0.5px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"1rem 1.25rem", marginBottom:"0.75rem" },
+        sectionLabel: { fontSize:12, fontWeight:500, color:"var(--text2)", textTransform:"uppercase", letterSpacing:"0.04em", marginBottom:10 },
+        btn: (a) => ({ fontSize:13, padding:"6px 12px", borderRadius:"var(--radius)", border:"0.5px solid var(--border2)", background:a?"var(--bg2)":"transparent", color:"var(--text)", cursor:"pointer", fontWeight:500 }),
+        xBtn: { background:"none", border:"none", cursor:"pointer", color:"var(--text2)", fontSize:18, padding:"0 2px", lineHeight:1 },
+        grid2: { display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(280px, 1fr))", gap:"0.75rem", marginBottom:"0.75rem" },
+        pill: (a) => ({ fontSize:11, padding:"3px 8px", borderRadius:999, border:`0.5px solid ${a?"var(--border2)":"var(--border)"}`, background:a?"var(--bg2)":"transparent", color:a?"var(--text)":"var(--text2)", cursor:"pointer" }),
+        input: { fontSize:13, padding:"7px 10px", borderRadius:"var(--radius)", border:"0.5px solid var(--border2)", background:"var(--bg)", color:"var(--text)", outline:"none" },
       };
 
-      if (loading) return <div style={{ ...s.wrap, paddingTop: "3rem", textAlign: "center", color: "var(--text2)" }}>Loading...</div>;
+      if (loading) return <div style={{ ...s.wrap, paddingTop:"3rem", textAlign:"center", color:"var(--text2)" }}>Loading...</div>;
       if (!session) return <Auth />;
 
       return (
         <div style={s.wrap}>
 
           {/* Greeting */}
-          <div style={{ textAlign: "center", marginBottom: "2.5rem", padding: "2rem 0 1rem" }}>
-            <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 4, letterSpacing: "0.03em" }}>{dateStr}</p>
-            <p style={{ fontSize: 32, fontWeight: 300, color: "var(--text)", letterSpacing: "-0.5px", marginBottom: 4 }}>{timeStr}</p>
-            <p style={{ fontSize: 15, fontWeight: 400, lineHeight: 1.6, color: "var(--text2)", fontStyle: "italic", maxWidth: 420, margin: "0 auto" }}>{greeting}</p>
+          <div style={{ textAlign:"center", marginBottom:"2.5rem", padding:"2rem 0 1rem" }}>
+            <p style={{ fontSize:13, color:"var(--text2)", marginBottom:4, letterSpacing:"0.03em" }}>{dateStr}</p>
+            <p style={{ fontSize:32, fontWeight:300, color:"var(--text)", letterSpacing:"-0.5px", marginBottom:4 }}>{timeStr}</p>
+            <p style={{ fontSize:15, fontWeight:400, lineHeight:1.6, color:"var(--text2)", fontStyle:"italic", maxWidth:420, margin:"0 auto" }}>{greeting}</p>
           </div>
 
           {/* Top row — Habits + Tasks */}
@@ -214,56 +224,56 @@
 
             {/* Habits */}
             <div style={s.card}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
                 <span style={s.sectionLabel}>Habits</span>
-                <a href="/habits.html" style={{ fontSize: 12, color: "var(--text2)", textDecoration: "none" }}>View all →</a>
+                <a href="/habits.html" style={{ fontSize:12, color:"var(--text2)", textDecoration:"none" }}>View all →</a>
               </div>
-              {habits.length === 0 && <p style={{ fontSize: 13, color: "var(--text2)" }}>No habits yet.</p>}
+              {habits.length === 0 && <p style={{ fontSize:13, color:"var(--text2)" }}>No habits yet.</p>}
               {habits.map(h => {
                 const done = loggedToday.has(h.id);
                 return (
-                  <a key={h.id} href="/habits.html" style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "0.5px solid var(--border)", textDecoration: "none", color: "var(--text)" }}>
-                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: h.color, flexShrink: 0 }} />
-                    <span style={{ fontSize: 14, flex: 1 }}>{h.name}</span>
-                    <span style={{ fontSize: 13, color: done ? "#1D9E75" : "var(--text2)", fontWeight: done ? 500 : 400 }}>{done ? "✓ Done" : "○ Pending"}</span>
+                  <a key={h.id} href="/habits.html" style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 0", borderBottom:"0.5px solid var(--border)", textDecoration:"none", color:"var(--text)" }}>
+                    <div style={{ width:10, height:10, borderRadius:"50%", background:h.color, flexShrink:0 }}/>
+                    <span style={{ fontSize:14, flex:1 }}>{h.name}</span>
+                    <span style={{ fontSize:13, color:done?"#1D9E75":"var(--text2)", fontWeight:done?500:400 }}>{done?"✓ Done":"○ Pending"}</span>
                   </a>
                 );
               })}
-              <p style={{ fontSize: 12, color: "var(--text2)", marginTop: 10 }}>{loggedToday.size}/{habits.length} done today</p>
+              <p style={{ fontSize:12, color:"var(--text2)", marginTop:10 }}>{loggedToday.size}/{habits.length} done today</p>
             </div>
 
             {/* Tasks */}
             <div style={s.card}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
                 <span style={s.sectionLabel}>Tasks</span>
-                <button style={s.btn(false)} onClick={(e) => { e.stopPropagation(); setShowTaskForm(v => !v); }}>+ Add</button>
+                <button style={s.btn(false)} onClick={() => setShowTaskForm(v => !v)}>+ Add</button>
               </div>
 
               {showTaskForm && (
-                <div style={{ marginBottom: 12, padding: "10px 12px", background: "var(--bg2)", borderRadius: "var(--radius)" }}>
-                  <input type="text" placeholder="Task title..." value={taskTitle} onChange={e => setTaskTitle(e.target.value)} onKeyDown={e => e.key === "Enter" && addTask()} style={{ width: "100%", fontSize: 13, padding: "7px 10px", borderRadius: "var(--radius)", border: "0.5px solid var(--border2)", background: "var(--bg)", color: "var(--text)", outline: "none", marginBottom: 8 }} />
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
-                    <input type="date" value={taskDue} onChange={e => setTaskDue(e.target.value)} style={{ fontSize: 13, padding: "6px 8px", borderRadius: "var(--radius)", border: "0.5px solid var(--border2)", background: "var(--bg)", color: "var(--text)", outline: "none", flex: 1 }} />
-                    <input type="color" value={taskColor} onChange={e => setTaskColor(e.target.value)} style={{ width: 32, height: 32, borderRadius: "var(--radius)", border: "0.5px solid var(--border2)", cursor: "pointer", padding: 2, background: "none" }} />
+                <div style={{ marginBottom:12, padding:"10px 12px", background:"var(--bg2)", borderRadius:"var(--radius)" }}>
+                  <input type="text" placeholder="Task title..." value={taskTitle} onChange={e=>setTaskTitle(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addTask()} style={{ ...s.input, width:"100%", marginBottom:8 }}/>
+                  <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:8 }}>
+                    <input type="date" value={taskDue} onChange={e=>setTaskDue(e.target.value)} style={{ ...s.input, flex:1 }}/>
+                    <input type="color" value={taskColor} onChange={e=>setTaskColor(e.target.value)} style={{ width:32, height:32, borderRadius:"var(--radius)", border:"0.5px solid var(--border2)", cursor:"pointer", padding:2, background:"none" }}/>
                   </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button style={{ ...s.btn(true), background: "#1D9E75", color: "white", border: "none", fontSize: 13 }} onClick={addTask}>Save</button>
+                  <div style={{ display:"flex", gap:8 }}>
+                    <button style={{ ...s.btn(true), background:"#1D9E75", color:"white", border:"none" }} onClick={addTask}>Save</button>
                     <button style={s.btn(false)} onClick={() => setShowTaskForm(false)}>Cancel</button>
                   </div>
                 </div>
               )}
 
-              {tasks.length === 0 && !showTaskForm && <p style={{ fontSize: 13, color: "var(--text2)" }}>No tasks. You're clear.</p>}
+              {tasks.length === 0 && !showTaskForm && <p style={{ fontSize:13, color:"var(--text2)" }}>No tasks. You're clear.</p>}
               {tasks.map(t => {
-                const urgColor = taskUrgencyColor(t);
+                const uc = urgencyColor(t);
                 const dueLabel = formatDueDate(t.due_date);
                 return (
-                  <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "0.5px solid var(--border)" }}>
-                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: urgColor, flexShrink: 0 }} />
-                    <span style={{ fontSize: 14, flex: 1, color: "var(--text)" }}>{t.title}</span>
-                    {dueLabel && <span style={{ fontSize: 11, color: urgColor, fontWeight: 500, whiteSpace: "nowrap" }}>{dueLabel}</span>}
-                    <button onClick={() => completeTask(t.id)} style={{ background: "none", border: `1.5px solid ${urgColor}`, borderRadius: "50%", width: 20, height: 20, cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }} title="Mark done">
-                      <svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke={urgColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 0", borderBottom:"0.5px solid var(--border)" }}>
+                    <div style={{ width:10, height:10, borderRadius:"50%", background:uc, flexShrink:0 }}/>
+                    <span style={{ fontSize:14, flex:1, color:"var(--text)" }}>{t.title}</span>
+                    {dueLabel && <span style={{ fontSize:11, color:uc, fontWeight:500, whiteSpace:"nowrap" }}>{dueLabel}</span>}
+                    <button onClick={() => completeTask(t.id)} style={{ background:"none", border:`1.5px solid ${uc}`, borderRadius:"50%", width:20, height:20, cursor:"pointer", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke={uc} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </button>
                   </div>
                 );
@@ -271,20 +281,20 @@
             </div>
           </div>
 
-          {/* Sticky notes */}
+          {/* Pinned notes */}
           {pinnedNotes.length > 0 && (
             <div style={s.card}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
                 <span style={s.sectionLabel}>📌 Pinned</span>
-                <a href="/notes.html" style={{ fontSize: 12, color: "var(--text2)", textDecoration: "none" }}>View all →</a>
+                <a href="/notes.html" style={{ fontSize:12, color:"var(--text2)", textDecoration:"none" }}>View all →</a>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(200px, 1fr))", gap:10 }}>
                 {pinnedNotes.map(note => (
-                  <div key={note.id} style={{ background: "var(--bg2)", borderRadius: "var(--radius)", padding: "10px 12px", position: "relative" }}>
-                    <button style={{ ...s.xBtn, position: "absolute", top: 6, right: 6, fontSize: 14 }} onClick={() => unpinNote(note)} title="Unpin">×</button>
-                    <p style={{ fontSize: 13, lineHeight: 1.6, color: "var(--text)", whiteSpace: "pre-wrap", paddingRight: 16 }}>{note.content.slice(0, 120)}{note.content.length > 120 ? "..." : ""}</p>
-                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 8 }}>
-                      {(note.tags || []).map(t => <span key={t} style={{ fontSize: 10, padding: "2px 6px", borderRadius: 999, background: "var(--bg)", color: "var(--text2)" }}>{t}</span>)}
+                  <div key={note.id} style={{ background:"var(--bg2)", borderRadius:"var(--radius)", padding:"10px 12px", position:"relative" }}>
+                    <button style={{ ...s.xBtn, position:"absolute", top:6, right:6, fontSize:14 }} onClick={() => unpinNote(note)}>×</button>
+                    <p style={{ fontSize:13, lineHeight:1.6, color:"var(--text)", whiteSpace:"pre-wrap", paddingRight:16 }}>{note.content.slice(0,120)}{note.content.length>120?"...":""}</p>
+                    <div style={{ display:"flex", gap:4, flexWrap:"wrap", marginTop:8 }}>
+                      {(note.tags||[]).map(t=><span key={t} style={{ fontSize:10, padding:"2px 6px", borderRadius:999, background:"var(--bg)", color:"var(--text2)" }}>{t}</span>)}
                     </div>
                   </div>
                 ))}
@@ -294,49 +304,42 @@
 
           {/* Recent notes */}
           <div style={s.card}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
               <span style={s.sectionLabel}>Recent notes</span>
-              <a href="/notes.html" style={{ fontSize: 12, color: "var(--text2)", textDecoration: "none" }}>View all →</a>
+              <a href="/notes.html" style={{ fontSize:12, color:"var(--text2)", textDecoration:"none" }}>View all →</a>
             </div>
-            {recentNotes.length === 0 && !showNoteForm && <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 12 }}>No notes yet.</p>}
+            {recentNotes.length === 0 && !showNoteForm && <p style={{ fontSize:13, color:"var(--text2)", marginBottom:12 }}>No notes yet.</p>}
             {recentNotes.map(note => (
-              <div key={note.id} style={{ padding: "8px 0", borderBottom: "0.5px solid var(--border)" }}>
-                <p style={{ fontSize: 13, color: "var(--text)", whiteSpace: "pre-wrap", lineHeight: 1.5 }}>{note.content.slice(0, 100)}{note.content.length > 100 ? "..." : ""}</p>
-                <div style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 4 }}>
-                  {(note.tags || []).map(t => <span key={t} style={{ fontSize: 10, padding: "2px 6px", borderRadius: 999, background: "var(--bg2)", color: "var(--text2)" }}>{t}</span>)}
-                  <span style={{ fontSize: 11, color: "var(--text2)", marginLeft: "auto" }}>{new Date(note.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+              <div key={note.id} style={{ padding:"8px 0", borderBottom:"0.5px solid var(--border)" }}>
+                <p style={{ fontSize:13, color:"var(--text)", whiteSpace:"pre-wrap", lineHeight:1.5 }}>{note.content.slice(0,100)}{note.content.length>100?"...":""}</p>
+                <div style={{ display:"flex", gap:6, alignItems:"center", marginTop:4 }}>
+                  {(note.tags||[]).map(t=><span key={t} style={{ fontSize:10, padding:"2px 6px", borderRadius:999, background:"var(--bg2)", color:"var(--text2)" }}>{t}</span>)}
+                  <span style={{ fontSize:11, color:"var(--text2)", marginLeft:"auto" }}>{new Date(note.created_at).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>
                 </div>
               </div>
             ))}
 
-            {/* Quick note capture */}
             {showNoteForm ? (
-              <div style={{ marginTop: 12 }}>
-                <textarea
-                  autoFocus
-                  placeholder="Capture a quick note..."
-                  value={quickNote}
-                  onChange={e => setQuickNote(e.target.value)}
-                  style={{ width: "100%", fontSize: 13, padding: "8px 10px", borderRadius: "var(--radius)", border: "0.5px solid var(--border2)", background: "var(--bg)", color: "var(--text)", resize: "none", minHeight: 70, outline: "none", fontFamily: "inherit", marginBottom: 8 }}
-                />
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-                  {["Personal","Work","Ideas","Later"].map(t => (
-                    <button key={t} onClick={() => setQuickNoteTags(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t])} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 999, border: `0.5px solid ${quickNoteTags.includes(t) ? "var(--border2)" : "var(--border)"}`, background: quickNoteTags.includes(t) ? "var(--bg2)" : "transparent", color: quickNoteTags.includes(t) ? "var(--text)" : "var(--text2)", cursor: "pointer" }}>{t}</button>
+              <div style={{ marginTop:12 }}>
+                <textarea autoFocus placeholder="Capture a quick note..." value={quickNote} onChange={e=>setQuickNote(e.target.value)} style={{ width:"100%", fontSize:13, padding:"8px 10px", borderRadius:"var(--radius)", border:"0.5px solid var(--border2)", background:"var(--bg)", color:"var(--text)", resize:"none", minHeight:70, outline:"none", fontFamily:"inherit", marginBottom:8 }}/>
+                <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:8 }}>
+                  {["Personal","Work","Ideas","Later"].map(t=>(
+                    <button key={t} onClick={()=>setQuickNoteTags(prev=>prev.includes(t)?prev.filter(x=>x!==t):[...prev,t])} style={s.pill(quickNoteTags.includes(t))}>{t}</button>
                   ))}
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button style={{ fontSize: 13, padding: "6px 14px", borderRadius: "var(--radius)", border: "none", background: "#1D9E75", color: "white", cursor: "pointer", fontWeight: 500 }} onClick={saveQuickNote}>Save</button>
-                  <button style={s.btn(false)} onClick={() => { setShowNoteForm(false); setQuickNote(""); setQuickNoteTags([]); }}>Cancel</button>
+                <div style={{ display:"flex", gap:8 }}>
+                  <button style={{ fontSize:13, padding:"6px 14px", borderRadius:"var(--radius)", border:"none", background:"#1D9E75", color:"white", cursor:"pointer", fontWeight:500 }} onClick={saveQuickNote}>Save</button>
+                  <button style={s.btn(false)} onClick={()=>{setShowNoteForm(false);setQuickNote("");setQuickNoteTags([]);}}>Cancel</button>
                 </div>
               </div>
             ) : (
-              <button style={{ ...s.btn(false), marginTop: 12, fontSize: 12 }} onClick={() => setShowNoteForm(true)}>+ Quick note</button>
+              <button style={{ ...s.btn(false), marginTop:12, fontSize:12 }} onClick={()=>setShowNoteForm(true)}>+ Quick note</button>
             )}
           </div>
 
           {/* Sign out */}
-          <div style={{ textAlign: "right", marginTop: "1rem" }}>
-            <button style={s.btn(false)} onClick={() => sb.auth.signOut()}>Sign out</button>
+          <div style={{ textAlign:"right", marginTop:"1rem" }}>
+            <button style={s.btn(false)} onClick={()=>sb.auth.signOut()}>Sign out</button>
           </div>
 
         </div>
