@@ -415,9 +415,11 @@
       }
 
       async function completeTask(id) {
-        await sb.from("tasks").update({done:true}).eq("id",id);
-        const t=allTasks.map(x=>x.id===id?{...x,done:true}:x);
-        setAllTasks(t);setTasks(t.filter(x=>!x.done).sort((a,b)=>(a.due_date||"9999")>(b.due_date||"9999")?1:-1));
+        const now = new Date().toISOString();
+        await sb.from("tasks").update({ done: true, updated_at: now }).eq("id", id);
+        const t = allTasks.map(x => x.id===id ? {...x, done:true, updated_at:now} : x);
+        setAllTasks(t);
+        setTasks(t.filter(x=>!x.done).sort((a,b)=>(a.due_date||"9999")>(b.due_date||"9999")?1:-1));
       }
 
       async function unpinNote(note) {
